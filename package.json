@@ -1,0 +1,9 @@
+{
+  "name": "@bouthouri/xpkit-core",
+  "version": "0.0.0",
+  "description": "XP Kit core — pure-TS versioned config schema (Zod) + gamification engine + storage-adapter & asset-ref interfaces. Zero runtime deps.",
+  "license": "UNLICENSED",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts"
+}
