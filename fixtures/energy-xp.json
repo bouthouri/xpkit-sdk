@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectName": "Energy XP",
+  "announcements": [],
+  "onboarding": {
+    "screens": [
+      {
+        "id": "energy-gauge",
+        "type": "video",
+        "source": { "kind": "asset", "key": "onboarding-2" },
+        "title": "Not every day is a 100% day",
+        "subtitle": "Tired? Rough night? Tap the gauge and set your real starting energy. You'll see exactly what fits and what doesn't."
+      },
+      {
+        "id": "task-cost",
+        "type": "video",
+        "source": { "kind": "asset", "key": "onboarding-1" },
+        "title": "Every task has a cost",
+        "subtitle": "Set how much energy each task takes, organize with folders, and choose which days it repeats."
+      },
+      {
+        "id": "adjust-your-day",
+        "type": "video",
+        "source": { "kind": "asset", "key": "onboarding-3" },
+        "title": "Adjust as your day unfolds",
+        "subtitle": "Swipe any task to edit it, skip it for today, or remove it entirely.",
+        "buttonText": "Almost Done"
+      },
+      {
+        "id": "notifications",
+        "type": "notification",
+        "title": "Gentle nudges, not noise",
+        "subtitle": "A quiet reminder before each task so you stay on pace with your energy.",
+        "grantedTitle": "You're all set"
+      }
+    ]
+  },
+  "gamification": {
+    "levels": [],
+    "variables": [],
+    "achievements": [],
+    "milestones": [],
+    "streaks": []
+  }
+}

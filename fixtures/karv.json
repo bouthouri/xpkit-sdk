@@ -1,0 +1,116 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectName": "Karv",
+  "announcements": [],
+  "onboarding": {
+    "screens": [
+      {
+        "id": "welcome",
+        "type": "video",
+        "source": { "kind": "asset", "key": "onboarding1" },
+        "title": "Welcome to Karv",
+        "subtitle": "Build habits that last. Every habit costs energy. Repeat it, and it gets easier.",
+        "buttonText": "Get Started"
+      },
+      {
+        "id": "daily-energy",
+        "type": "video",
+        "source": { "kind": "asset", "key": "onboarding2" },
+        "title": "Your Daily Energy",
+        "subtitle": "100 energy each day. Each habit costs some. Bad sleep? Low day? Tap the gauge to match your real energy."
+      },
+      {
+        "id": "mastery-milestones",
+        "type": "video",
+        "source": { "kind": "asset", "key": "onboarding3" },
+        "title": "Mastery Milestones",
+        "subtitle": "The more you show up, the easier it gets. You'll unlock milestones that drop the energy cost."
+      },
+      {
+        "id": "notifications",
+        "type": "notification",
+        "title": "Keep your streak alive",
+        "subtitle": "Get gentle reminders so you never miss twice.",
+        "grantedTitle": "You're all set"
+      }
+    ]
+  },
+  "gamification": {
+    "levels": [],
+    "variables": [
+      {
+        "id": "completionCount",
+        "name": "Habit completions",
+        "type": "counter",
+        "description": "Times a single habit has been completed. PER-HABIT, not global — see the per-entity gap in docs/01-json-contract.md."
+      }
+    ],
+    "achievements": [],
+    "milestones": [
+      {
+        "id": "first-spark",
+        "level": 0,
+        "threshold": 3,
+        "label": "First Spark",
+        "tier": "momentum",
+        "hint": "You've beaten the hardest part - starting. Your brain now recognizes this as a pattern.",
+        "effect": { "type": "energyReduction", "percent": 0 }
+      },
+      {
+        "id": "week-anchor",
+        "level": 1,
+        "threshold": 7,
+        "label": "Week Anchor",
+        "tier": "momentum",
+        "hint": "A full week! Your brain is building new neural pathways for this habit.",
+        "effect": { "type": "energyReduction", "percent": 0 }
+      },
+      {
+        "id": "the-shift",
+        "level": 2,
+        "threshold": 14,
+        "label": "The Shift",
+        "tier": "shift",
+        "hint": "Two weeks in - your body has physically adapted. The resistance you felt on day 1 is lower. If it feels easier, consider adjusting the energy.",
+        "effect": { "type": "energyReduction", "percent": 0 }
+      },
+      {
+        "id": "the-groove",
+        "level": 3,
+        "threshold": 21,
+        "label": "The Groove",
+        "tier": "mastery",
+        "hint": "Your brain just automated this. It moved from effortful thinking to autopilot - that's real neurological change.",
+        "effect": { "type": "energyReduction", "percent": 25 }
+      },
+      {
+        "id": "second-nature",
+        "level": 4,
+        "threshold": 50,
+        "label": "Second Nature",
+        "tier": "mastery",
+        "hint": "This is now unconscious competence. You do it without thinking. Be careful not to go on autopilot - keep paying attention to quality.",
+        "effect": { "type": "energyReduction", "percent": 50 }
+      },
+      {
+        "id": "autopilot",
+        "level": 5,
+        "threshold": 66,
+        "label": "Autopilot",
+        "tier": "mastery",
+        "hint": "Science says 66 days is the median for full automaticity. This habit is now wired into who you are.",
+        "effect": { "type": "energyReduction", "percent": 75 }
+      },
+      {
+        "id": "carved",
+        "level": 6,
+        "threshold": 100,
+        "label": "Carved",
+        "tier": "mastery",
+        "hint": "100 times. You didn't just build a habit - you carved it into your identity. This is mastery.",
+        "effect": { "type": "energyReduction", "percent": 100 }
+      }
+    ],
+    "streaks": []
+  }
+}

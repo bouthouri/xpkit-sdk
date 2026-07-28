@@ -1,0 +1,301 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectName": "Progres",
+  "announcements": [],
+  "onboarding": { "screens": [] },
+  "gamification": {
+    "levels": [],
+    "variables": [
+      {
+        "id": "progressCreated",
+        "name": "Progress trackers created",
+        "type": "counter",
+        "description": "addProgres() — a new progress tracker is created."
+      },
+      {
+        "id": "pathCreated",
+        "name": "Paths created",
+        "type": "counter",
+        "description": "addPath() — a new path is added to a progress tracker."
+      },
+      {
+        "id": "goalCreated",
+        "name": "Goals created",
+        "type": "counter",
+        "description": "updatePath() — a path gains a .goal value."
+      },
+      {
+        "id": "goalAchieved",
+        "name": "Goals achieved",
+        "type": "counter",
+        "description": "A score crosses its .goal, or a number-path milestone is reached."
+      },
+      {
+        "id": "progressAchieved",
+        "name": "Progress trackers completed",
+        "type": "counter",
+        "description": "markStepAsDone() takes a progres to 100 percent."
+      },
+      {
+        "id": "pathAchieved",
+        "name": "Paths completed",
+        "type": "counter",
+        "description": "markStepAsDone() finishes the last step of a path."
+      }
+    ],
+    "achievements": [
+      {
+        "id": "starter",
+        "name": "Starter",
+        "description": "Create your 1st progress tracker",
+        "icon": "🌱",
+        "category": "Progress Creation",
+        "conditions": [
+          { "variableId": "progressCreated", "operator": ">=", "threshold": 1 }
+        ]
+      },
+      {
+        "id": "strategist",
+        "name": "Strategist",
+        "description": "Create 3 progress trackers",
+        "icon": "🧠",
+        "category": "Progress Creation",
+        "conditions": [
+          { "variableId": "progressCreated", "operator": ">=", "threshold": 3 }
+        ]
+      },
+      {
+        "id": "planner",
+        "name": "Planner",
+        "description": "Create 10 progress trackers",
+        "icon": "📋",
+        "category": "Progress Creation",
+        "conditions": [
+          { "variableId": "progressCreated", "operator": ">=", "threshold": 10 }
+        ]
+      },
+      {
+        "id": "visionary",
+        "name": "Visionary",
+        "description": "Create 25 progress trackers",
+        "icon": "🔭",
+        "category": "Progress Creation",
+        "conditions": [
+          { "variableId": "progressCreated", "operator": ">=", "threshold": 25 }
+        ]
+      },
+      {
+        "id": "legacy_builder",
+        "name": "Legacy Builder",
+        "description": "Create 50 progress trackers",
+        "icon": "🏛️",
+        "category": "Progress Creation",
+        "conditions": [
+          { "variableId": "progressCreated", "operator": ">=", "threshold": 50 }
+        ]
+      },
+      {
+        "id": "pathfinder",
+        "name": "Pathfinder",
+        "description": "Create 3 paths",
+        "icon": "🛤️",
+        "category": "Path Creation",
+        "conditions": [
+          { "variableId": "pathCreated", "operator": ">=", "threshold": 3 }
+        ]
+      },
+      {
+        "id": "trailblazer",
+        "name": "Trailblazer",
+        "description": "Create 10 paths",
+        "icon": "🔥",
+        "category": "Path Creation",
+        "conditions": [
+          { "variableId": "pathCreated", "operator": ">=", "threshold": 10 }
+        ]
+      },
+      {
+        "id": "architect",
+        "name": "Architect",
+        "description": "Design 25 paths to your goals",
+        "icon": "🏗️",
+        "category": "Path Creation",
+        "conditions": [
+          { "variableId": "pathCreated", "operator": ">=", "threshold": 25 }
+        ]
+      },
+      {
+        "id": "mapmaker",
+        "name": "Mapmaker",
+        "description": "Craft 50 detailed paths",
+        "icon": "🗺️",
+        "category": "Path Creation",
+        "conditions": [
+          { "variableId": "pathCreated", "operator": ">=", "threshold": 50 }
+        ]
+      },
+      {
+        "id": "goal_setter",
+        "name": "Goal Setter",
+        "description": "Create 3 goals",
+        "icon": "🧱",
+        "category": "Goal Creation",
+        "conditions": [
+          { "variableId": "goalCreated", "operator": ">=", "threshold": 3 }
+        ]
+      },
+      {
+        "id": "dreamweaver",
+        "name": "Dreamweaver",
+        "description": "Create 10 goals",
+        "icon": "✨",
+        "category": "Goal Creation",
+        "conditions": [
+          { "variableId": "goalCreated", "operator": ">=", "threshold": 10 }
+        ]
+      },
+      {
+        "id": "vision_crafter",
+        "name": "Vision Crafter",
+        "description": "Create 25 goals",
+        "icon": "🔨",
+        "category": "Goal Creation",
+        "conditions": [
+          { "variableId": "goalCreated", "operator": ">=", "threshold": 25 }
+        ]
+      },
+      {
+        "id": "goal_engineer",
+        "name": "Goal Engineer",
+        "description": "Create 50 goals",
+        "icon": "🏛️",
+        "category": "Goal Creation",
+        "conditions": [
+          { "variableId": "goalCreated", "operator": ">=", "threshold": 50 }
+        ]
+      },
+      {
+        "id": "achiever",
+        "name": "Achiever",
+        "description": "Complete your 1st goal",
+        "icon": "👣",
+        "category": "Goal Completion",
+        "conditions": [
+          { "variableId": "goalAchieved", "operator": ">=", "threshold": 1 }
+        ]
+      },
+      {
+        "id": "finisher",
+        "name": "Finisher",
+        "description": "Complete 5 goals",
+        "icon": "🏁",
+        "category": "Goal Completion",
+        "conditions": [
+          { "variableId": "goalAchieved", "operator": ">=", "threshold": 5 }
+        ]
+      },
+      {
+        "id": "closer",
+        "name": "Closer",
+        "description": "Complete 15 goals",
+        "icon": "🎯",
+        "category": "Goal Completion",
+        "conditions": [
+          { "variableId": "goalAchieved", "operator": ">=", "threshold": 15 }
+        ]
+      },
+      {
+        "id": "goal_crusher",
+        "name": "Goal Crusher",
+        "description": "Complete 50 goals",
+        "icon": "⚔️",
+        "category": "Goal Completion",
+        "conditions": [
+          { "variableId": "goalAchieved", "operator": ">=", "threshold": 50 }
+        ]
+      },
+      {
+        "id": "path_master",
+        "name": "Path Master",
+        "description": "Complete 3 paths",
+        "icon": "🌟",
+        "category": "Path Completion",
+        "conditions": [
+          { "variableId": "pathAchieved", "operator": ">=", "threshold": 3 }
+        ]
+      },
+      {
+        "id": "wayfinder",
+        "name": "Wayfinder",
+        "description": "Complete 10 paths",
+        "icon": "🧭",
+        "category": "Path Completion",
+        "conditions": [
+          { "variableId": "pathAchieved", "operator": ">=", "threshold": 10 }
+        ]
+      },
+      {
+        "id": "trail_seeker",
+        "name": "Trail Seeker",
+        "description": "Complete 25 paths",
+        "icon": "🔥",
+        "category": "Path Completion",
+        "conditions": [
+          { "variableId": "pathAchieved", "operator": ">=", "threshold": 25 }
+        ]
+      },
+      {
+        "id": "epic_explorer",
+        "name": "Epic Explorer",
+        "description": "Complete 50 paths",
+        "icon": "🚀",
+        "category": "Path Completion",
+        "conditions": [
+          { "variableId": "pathAchieved", "operator": ">=", "threshold": 50 }
+        ]
+      },
+      {
+        "id": "progress_master",
+        "name": "Progress Master",
+        "description": "Complete your 1st full progress",
+        "icon": "💫",
+        "category": "Progress Completion",
+        "conditions": [
+          { "variableId": "progressAchieved", "operator": ">=", "threshold": 1 }
+        ]
+      },
+      {
+        "id": "hero",
+        "name": "Hero",
+        "description": "Complete 3 full progress trackers",
+        "icon": "🦸",
+        "category": "Progress Completion",
+        "conditions": [
+          { "variableId": "progressAchieved", "operator": ">=", "threshold": 3 }
+        ]
+      },
+      {
+        "id": "sage",
+        "name": "Sage",
+        "description": "Complete 10 full progress trackers",
+        "icon": "🧘",
+        "category": "Progress Completion",
+        "conditions": [
+          { "variableId": "progressAchieved", "operator": ">=", "threshold": 10 }
+        ]
+      },
+      {
+        "id": "eternal",
+        "name": "Eternal",
+        "description": "Complete 25 full progress trackers",
+        "icon": "🏆",
+        "category": "Progress Completion",
+        "conditions": [
+          { "variableId": "progressAchieved", "operator": ">=", "threshold": 25 }
+        ]
+      }
+    ],
+    "milestones": [],
+    "streaks": []
+  }
+}
