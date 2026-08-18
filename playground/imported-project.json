@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "1.0.0",
+  "projectName": "My First Project",
+  "announcements": [
+    {
+      "id": "d5235394-eba8-4783-924d-db042a8c4272",
+      "version": "1.1.1",
+      "title": "WELCOMEEEE",
+      "description": "SQKJDHUIQ",
+      "image": { "kind": "asset", "key": "announcements/1785247952359" }
+    }
+  ],
+  "onboarding": {
+    "screens": [
+      {
+        "id": "welcome",
+        "type": "video",
+        "title": "welcome",
+        "subtitle": "merci >.<",
+        "source": { "kind": "asset", "key": "onboarding/welcome" },
+        "buttonText": "next"
+      },
+      {
+        "id": "permission",
+        "type": "permission",
+        "permission": "notif",
+        "title": "permisson",
+        "subtitle": "we need permission",
+        "grantedTitle": "u'r all set!",
+        "buttonText": "continue without"
+      }
+    ],
+    "showSkip": true
+  },
+  "gamification": {
+    "levels": [
+      { "id": "56958edb-ddfa-4e2a-88be-445c54b67672", "name": "starter", "xpThreshold": 0 }
+    ],
+    "variables": [
+      { "id": "progress_created", "name": "progressCreated", "type": "counter", "description": "" },
+      { "id": "path_created", "name": "pathCreated", "type": "counter", "description": "" },
+      { "id": "goal_created", "name": "goalCreated", "type": "counter", "description": "" },
+      { "id": "goal_achieved", "name": "goalAchieved", "type": "counter", "description": "" },
+      { "id": "progress_achieved", "name": "progressAchieved", "type": "counter", "description": "" },
+      { "id": "path_achieved", "name": "pathAchieved", "type": "counter", "description": "" }
+    ],
+    "achievements": [
+      { "id": "starter", "name": "starter", "description": "Create your 1st progress tracker", "icon": "🌱", "tier": null, "hidden": false, "rarity": null, "category": null, "purpose": "", "conditions": [{ "variableId": "progress_created", "operator": "==", "threshold": 1 }] },
+      { "id": "strategist", "name": "strategist", "description": "Create 3 progress trackers", "icon": "🧠", "tier": null, "hidden": false, "rarity": null, "category": null, "purpose": "", "conditions": [{ "variableId": "progress_created", "operator": "==", "threshold": 3 }] },
+      { "id": "planner", "name": "planner", "description": "Create 10 progress trackers", "icon": "📋", "tier": null, "hidden": false, "rarity": null, "category": null, "purpose": "", "conditions": [{ "variableId": "progress_created", "operator": "==", "threshold": 10 }] },
+      { "id": "visionary", "name": "Visionary", "description": "Create 25 progress trackers", "icon": "🔭", "tier": null, "hidden": false, "rarity": null, "category": null, "purpose": "", "conditions": [{ "variableId": "progress_created", "operator": "==", "threshold": 25 }] },
+      { "id": "legacy_builder", "name": "Legacy Builder", "description": "Create 50 progress trackers", "icon": "🏛️", "tier": null, "hidden": false, "rarity": null, "category": null, "purpose": "", "conditions": [{ "variableId": "progress_created", "operator": "==", "threshold": 50 }] },
+      { "id": "path_finder", "name": "Pathfinder", "description": "create 3 paths", "icon": "🛤️", "tier": null, "hidden": false, "rarity": null, "category": null, "purpose": "", "conditions": [{ "variableId": "path_created", "operator": "==", "threshold": 3 }] },
+      { "id": "trailblazer", "name": "Trailblazer", "description": "Create 10 paths", "icon": "🔥", "tier": null, "hidden": false, "rarity": null, "category": null, "purpose": "", "conditions": [{ "variableId": "path_created", "operator": "==", "threshold": 10 }] },
+      { "id": "architecht", "name": "Architect", "description": "Design 25 paths to your goal", "icon": "🏗️", "tier": null, "hidden": false, "rarity": null, "category": null, "purpose": "", "conditions": [{ "variableId": "path_created", "operator": ">=", "threshold": 25 }] },
+      { "id": "mapmaker", "name": "Mapmaker", "description": "Craft 50 detailed paths", "icon": "🗺️", "tier": null, "hidden": false, "rarity": null, "category": null, "purpose": "", "conditions": [{ "variableId": "progress_created", "operator": "==", "threshold": 50 }] },
+      { "id": "goal_setter", "name": "Goal Setter", "description": "Create 3 goals", "icon": "🧱", "tier": null, "hidden": false, "rarity": null, "category": null, "purpose": "", "conditions": [{ "variableId": "goal_created", "operator": "==", "threshold": 3 }] },
+      { "id": "dreamweaver", "name": "Dreamweaver", "description": "Create 10 goals", "icon": "✨", "tier": null, "hidden": false, "rarity": null, "category": null, "purpose": "", "conditions": [{ "variableId": "goal_created", "operator": "==", "threshold": 10 }] },
+      { "id": "vision_crafter", "name": "Vision Crafter", "description": "Create 25 goals", "icon": "🎨", "tier": null, "hidden": false, "rarity": null, "category": null, "purpose": "", "conditions": [{ "variableId": "goal_created", "operator": "==", "threshold": 25 }] },
+      { "id": "goal_engineer", "name": "Goal Engineer", "description": "Create 50 goals", "icon": "🏛️", "tier": null, "hidden": false, "rarity": null, "category": null, "purpose": "", "conditions": [{ "variableId": "goal_created", "operator": "==", "threshold": 50 }] },
+      { "id": "achiever", "name": "Achiever", "description": "Complete your 1st goal", "icon": "👣", "tier": null, "hidden": false, "rarity": null, "category": null, "purpose": "", "conditions": [{ "variableId": "goal_achieved", "operator": "==", "threshold": 1 }] },
+      { "id": "finisher", "name": "Finisher", "description": "Complete 5 goals", "icon": "🏁", "tier": null, "hidden": false, "rarity": null, "category": null, "purpose": "", "conditions": [{ "variableId": "goal_achieved", "operator": "==", "threshold": 5 }] },
+      { "id": "closer", "name": "Closer", "description": "Complete 15 goals", "icon": "🎯", "tier": null, "hidden": false, "rarity": null, "category": null, "purpose": "", "conditions": [{ "variableId": "goal_achieved", "operator": "==", "threshold": 15 }] },
+      { "id": "goal_crusher", "name": "Goal Crusher", "description": "Complete 50 goals", "icon": "⚔️", "tier": null, "hidden": false, "rarity": null, "category": null, "purpose": "", "conditions": [{ "variableId": "goal_achieved", "operator": "==", "threshold": 50 }] },
+      { "id": "path_master", "name": "Path Master", "description": "Complete 3 paths", "icon": "🌟", "tier": null, "hidden": false, "rarity": null, "category": null, "purpose": "", "conditions": [{ "variableId": "path_achieved", "operator": "==", "threshold": 3 }] },
+      { "id": "wayfinder", "name": "Wayfinder", "description": "Complete 10 paths", "icon": "🧭", "tier": null, "hidden": false, "rarity": null, "category": null, "purpose": "", "conditions": [{ "variableId": "path_achieved", "operator": "==", "threshold": 10 }] },
+      { "id": "trail_seeker", "name": "Trail Seeker", "description": "Complete 25 paths", "icon": "🔥", "tier": null, "hidden": false, "rarity": null, "category": null, "purpose": "", "conditions": [{ "variableId": "path_achieved", "operator": "==", "threshold": 25 }] },
+      { "id": "epic_explorer", "name": "Epic Explorer", "description": "Complete 50 paths", "icon": "🚀", "tier": null, "hidden": false, "rarity": null, "category": null, "purpose": "", "conditions": [{ "variableId": "path_achieved", "operator": "==", "threshold": 50 }] },
+      { "id": "progress_master", "name": "Progress Master", "description": "Complete your 1st full progress", "icon": "💫", "tier": null, "hidden": false, "rarity": null, "category": null, "purpose": "", "conditions": [{ "variableId": "progress_achieved", "operator": "==", "threshold": 1 }] },
+      { "id": "hero", "name": "Hero", "description": "Complete 3 full progress trackers", "icon": "🦸", "tier": null, "hidden": false, "rarity": null, "category": null, "purpose": "", "conditions": [{ "variableId": "progress_achieved", "operator": "==", "threshold": 3 }] },
+      { "id": "sage", "name": "Sage", "description": "Complete 10 full progress trackers", "icon": "🧘", "tier": null, "hidden": false, "rarity": null, "category": null, "purpose": "", "conditions": [{ "variableId": "progress_achieved", "operator": "==", "threshold": 10 }] },
+      { "id": "eternal", "name": "Eternal", "description": "Complete 25 full progress trackers", "icon": "🏆", "tier": null, "hidden": false, "rarity": null, "category": null, "purpose": "", "conditions": [{ "variableId": "progress_achieved", "operator": "==", "threshold": 25 }] },
+      { "id": "test_pic", "name": "test pic", "description": "dd", "icon": "🖼️", "tier": null, "hidden": false, "rarity": null, "category": null, "purpose": "", "conditions": [{ "variableId": "progress_created", "operator": ">=", "threshold": 1 }] }
+    ],
+    "milestones": [],
+    "streaks": []
+  }
+}

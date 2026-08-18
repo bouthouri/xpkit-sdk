@@ -18,26 +18,37 @@ import { useMemo, useState } from "react";
 import { applyIncrement, withStatus } from "../achievements/index";
 import type { AchievementWithStatus, CounterState } from "../achievements/index";
 import { fixtureNames, rawFixtures, type FixtureName } from "../fixtures/index";
-import { Onboarding } from "../onboarding/index";
+import { Onboarding, replayOnboarding } from "../onboarding/index";
 import { parseConfig, type XPKitConfig } from "../shared/index";
 import { webAssets } from "./assets";
+import importedProjectRaw from "./imported-project.json";
 
-const LABELS: Record<FixtureName, string> = {
+/**
+ * "imported" is a real export pulled from the editor (xpkit), pasted in and validated
+ * against `parseConfig` — not one of the three read-only fixtures. See
+ * `imported-project.json` next to this file.
+ */
+type TabName = FixtureName | "imported";
+const tabNames: TabName[] = [...fixtureNames, "imported"];
+
+const LABELS: Record<TabName, string> = {
   "energy-xp": "Energy XP",
   progres: "Progres",
   karv: "Karv",
+  imported: "My First Project (imported)",
 };
 
-function parse(name: FixtureName): { config?: XPKitConfig; error?: string } {
+function parse(name: TabName): { config?: XPKitConfig; error?: string } {
   try {
-    return { config: parseConfig(rawFixtures[name]) };
+    const raw = name === "imported" ? importedProjectRaw : rawFixtures[name];
+    return { config: parseConfig(raw) };
   } catch (error) {
     return { error: error instanceof Error ? error.message : String(error) };
   }
 }
 
 export function App() {
-  const [active, setActive] = useState<FixtureName>("energy-xp");
+  const [active, setActive] = useState<TabName>("energy-xp");
   const { config, error } = useMemo(() => parse(active), [active]);
 
   return (
@@ -50,7 +61,7 @@ export function App() {
       </p>
 
       <div className="tabs">
-        {fixtureNames.map((name) => (
+        {tabNames.map((name) => (
           <button
             key={name}
             aria-pressed={name === active}
@@ -74,11 +85,19 @@ export function App() {
             {config.projectName} <span className="pill">schema v{config.schemaVersion}</span>
           </h2>
 
-          <h2>Onboarding — rendered by onboarding/</h2>
+          <h2>
+            Onboarding — rendered by onboarding/{" "}
+            <button onClick={() => replayOnboarding()}>Replay onboarding</button>
+          </h2>
+          <p className="dim">
+            Renders <code>null</code> once you finish or skip it — that state persists in{" "}
+            <code>localStorage</code>. Click "Replay onboarding" to see it again.
+          </p>
           <Onboarding
             config={config.onboarding}
             assets={webAssets}
             onComplete={() => console.log("[playground] onboarding complete")}
+            onSkip={() => console.log("[playground] onboarding skipped")}
           />
 
           <ScreensTable config={config} />

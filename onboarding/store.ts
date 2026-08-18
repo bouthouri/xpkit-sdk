@@ -13,11 +13,7 @@
 import { createStore, type StoreApi } from "zustand/vanilla";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-import {
-  getXPKitRuntime,
-  notImplemented,
-  xpkitStorageKey,
-} from "../shared/index";
+import { getXPKitRuntime, xpkitStorageKey } from "../shared/index";
 import type { OnboardingStore } from "./types";
 
 export interface OnboardingStoreOptions {
@@ -58,7 +54,28 @@ export interface OnboardingStoreOptions {
 export function createOnboardingStore(
   options: OnboardingStoreOptions = {},
 ): StoreApi<OnboardingStore> {
-  return notImplemented("createOnboardingStore()");
+  const initializer = (
+    set: (partial: Partial<OnboardingStore>) => void,
+  ): OnboardingStore => ({
+    isOnboarded: false,
+    lastSeenVersion: null,
+    complete: () =>
+      set({ isOnboarded: true, lastSeenVersion: getXPKitRuntime().appVersion }),
+    replay: () => set({ isOnboarded: false }),
+    reset: () => set({ isOnboarded: false, lastSeenVersion: null }),
+  });
+
+  if (options.persist === false) {
+    return createStore<OnboardingStore>()(initializer);
+  }
+
+  const { storage } = getXPKitRuntime();
+  return createStore<OnboardingStore>()(
+    persist(initializer, {
+      name: xpkitStorageKey(options.name ?? "onboarding"),
+      storage: createJSONStorage(() => storage),
+    }),
+  );
 }
 
 let singleton: StoreApi<OnboardingStore> | null = null;

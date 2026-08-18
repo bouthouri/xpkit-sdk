@@ -14,7 +14,6 @@
  * fails on a fresh clone; its failure message is your first instruction.
  */
 
-import { notImplemented } from "../shared/index";
 import type {
   Achievement,
   AchievementWithStatus,
@@ -38,7 +37,21 @@ export function conditionMet(
   condition: Condition,
   counters: CounterState,
 ): boolean {
-  return notImplemented("conditionMet()");
+  const value = counterValue(counters, condition.variableId);
+  switch (condition.operator) {
+    case ">=":
+      return value >= condition.threshold;
+    case ">":
+      return value > condition.threshold;
+    case "==":
+      return value === condition.threshold;
+    case "<":
+      return value < condition.threshold;
+    case "<=":
+      return value <= condition.threshold;
+    case "!=":
+      return value !== condition.threshold;
+  }
 }
 
 /**
@@ -52,7 +65,8 @@ export function conditionsMet(
   achievement: Achievement,
   counters: CounterState,
 ): boolean {
-  return notImplemented("conditionsMet()");
+  if (achievement.conditions.length === 0) return false;
+  return achievement.conditions.every((condition) => conditionMet(condition, counters));
 }
 
 /**
@@ -70,7 +84,13 @@ export function evaluateUnlocks(input: {
   counters: CounterState;
   unlocked: readonly string[];
 }): string[] {
-  return notImplemented("evaluateUnlocks()");
+  const { catalog, counters, unlocked } = input;
+  const newlyUnlocked: string[] = [];
+  for (const achievement of catalog) {
+    if (unlocked.includes(achievement.id)) continue;
+    if (conditionsMet(achievement, counters)) newlyUnlocked.push(achievement.id);
+  }
+  return newlyUnlocked;
 }
 
 /**
@@ -90,7 +110,17 @@ export function applyIncrement(input: {
   variableId: string;
   by?: number;
 }): IncrementResult {
-  return notImplemented("applyIncrement()");
+  const { catalog, counters, unlocked, variableId, by = 1 } = input;
+  const nextCounters: CounterState = {
+    ...counters,
+    [variableId]: counterValue(counters, variableId) + by,
+  };
+  const newlyUnlocked = evaluateUnlocks({ catalog, counters: nextCounters, unlocked });
+  return {
+    counters: nextCounters,
+    unlocked: [...unlocked, ...newlyUnlocked],
+    newlyUnlocked,
+  };
 }
 
 /**
@@ -103,7 +133,14 @@ export function applySetCounter(input: {
   variableId: string;
   value: number;
 }): IncrementResult {
-  return notImplemented("applySetCounter()");
+  const { catalog, counters, unlocked, variableId, value } = input;
+  const nextCounters: CounterState = { ...counters, [variableId]: value };
+  const newlyUnlocked = evaluateUnlocks({ catalog, counters: nextCounters, unlocked });
+  return {
+    counters: nextCounters,
+    unlocked: [...unlocked, ...newlyUnlocked],
+    newlyUnlocked,
+  };
 }
 
 /**
@@ -120,5 +157,22 @@ export function withStatus(input: {
   counters: CounterState;
   unlocked: readonly string[];
 }): AchievementWithStatus[] {
-  return notImplemented("withStatus()");
+  const { catalog, counters, unlocked } = input;
+  return catalog.map((achievement) => {
+    const isUnlocked = unlocked.includes(achievement.id);
+    const progress = isUnlocked ? 100 : progressOf(achievement, counters);
+    return { ...achievement, isUnlocked, progress };
+  });
+}
+
+/** The least-complete condition, 0-100, clamped. `conditions: []` reads as 0. */
+function progressOf(achievement: Achievement, counters: CounterState): number {
+  if (achievement.conditions.length === 0) return 0;
+  const percents = achievement.conditions.map((condition) => {
+    const value = counterValue(counters, condition.variableId);
+    const percent =
+      condition.threshold > 0 ? (value / condition.threshold) * 100 : conditionMet(condition, counters) ? 100 : 0;
+    return Math.min(100, Math.max(0, percent));
+  });
+  return Math.min(...percents);
 }

@@ -123,6 +123,8 @@ export const onboardingScreenSchema = z.discriminatedUnion("type", [
     title: z.string(),
     subtitle: z.string().optional(),
     grantedTitle: z.string().optional(),
+    grantedSubtitle: z.string().optional(),
+    buttonText: z.string().optional(),
   }),
   z.object({
     id: z.string(),
@@ -130,11 +132,14 @@ export const onboardingScreenSchema = z.discriminatedUnion("type", [
     title: z.string(),
     subtitle: z.string().optional(),
     grantedTitle: z.string().optional(),
+    grantedSubtitle: z.string().optional(),
+    buttonText: z.string().optional(),
   }),
 ]);
 
 export const onboardingConfigSchema = z.object({
   screens: z.array(onboardingScreenSchema),
+  showSkip: z.boolean().optional(),
 });
 
 /** Open-ended by design: an effect is a `type` plus whatever that type needs. */
