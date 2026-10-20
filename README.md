@@ -1,3 +1,5 @@
+> Moved: this code now lives in the [`xpkit`](https://github.com/bouthouri/xpkit) monorepo (`packages/`). This repo is frozen.
+
 # XP Kit — runtime
 
 ```bash
