@@ -12,8 +12,8 @@ const root = join(import.meta.dir, '..')
 const packDir = join(root, '.pack')
 const dryRun = process.argv.includes('--dry-run')
 
-function run(cmd: string[]): { code: number; out: string } {
-  const proc = Bun.spawnSync(cmd, { cwd: root, stderr: 'inherit' })
+function run(cmd: string[], quiet = false): { code: number; out: string } {
+  const proc = Bun.spawnSync(cmd, { cwd: root, stderr: quiet ? 'ignore' : 'inherit' })
   return { code: proc.exitCode ?? 1, out: proc.stdout.toString() }
 }
 
@@ -33,7 +33,7 @@ let published = 0
 for (const tarball of tarballs) {
   const { name, version } = packedManifest(tarball)
   const id = `${name}@${version}`
-  const view = run(['npm', 'view', id, 'version'])
+  const view = run(['npm', 'view', id, 'version'], true) // 404 = not published yet
   if (view.code === 0 && view.out.trim() === version) {
     console.log(`${id}: already on npm, skipping`)
     continue
