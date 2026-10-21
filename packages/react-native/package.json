@@ -1,6 +1,6 @@
 {
   "name": "@xpkit-dev/react-native",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "XP Kit for React Native: provider, hooks, MMKV storage adapter, achievement grid, onboarding carousel and what's-new modal.",
   "license": "MIT",
   "type": "module",
