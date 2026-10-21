@@ -1,3 +1,6 @@
+# npm trusted publishing (OIDC): no NPM_TOKEN. npm's trusted-publisher config for each
+# package references this exact file name, so do not rename it.
+# First release (0.1.0) is published by hand; CI publishes once the trusted publisher is linked.
 name: Release
 
 on:
@@ -11,7 +14,7 @@ concurrency:
 permissions:
   contents: write
   pull-requests: write
-  id-token: write
+  id-token: write # OIDC token for npm trusted publishing + provenance
 
 jobs:
   release:
@@ -23,29 +26,19 @@ jobs:
           bun-version: 1.3.5
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           registry-url: https://registry.npmjs.org
+      - name: npm >= 11.5 (trusted publishing)
+        run: npm install -g npm@^11.5.1 && npm --version
       - run: bun install --frozen-lockfile
-      - name: Check NPM_TOKEN
-        id: token
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          if [ -n "$NPM_TOKEN" ]; then
-            echo "has_token=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_token=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::NPM_TOKEN not set: skipping release"
-          fi
       - name: Create release PR or publish
-        if: steps.token.outputs.has_token == 'true'
         uses: changesets/action@v1
         with:
           version: bun run version-packages
+          # changeset publish runs `npm publish --access public` per package; provenance via env.
           publish: bun run release
           commit: "chore: release packages"
           title: "chore: release packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
