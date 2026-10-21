@@ -1,205 +1,164 @@
-# 01 — The JSON contract
+# 01. The JSON contract
 
-XP Kit has two halves that never see each other's code. An **editor** emits JSON; a
-**runtime** (this repo) consumes it. This file is the schema both sides agree on, plus
-the exact translation from what the apps hardcode today, plus an honest list of what v1
-cannot yet express.
+XP Kit has two halves. An editor emits JSON. The runtime, `@xpkit-dev/core`, consumes it.
+This file describes schema version `1.0.0`.
 
-The schema lives in one file: [`shared/index.ts`](../shared/index.ts). It is Zod, and
-it is the only definition of these shapes in the repo — `onboarding/types.ts` and
-`achievements/types.ts` both re-export from it rather than restating anything.
-
----
+The schema is defined once, in zod, in [`packages/core/src/schema.ts`](../packages/core/src/schema.ts).
+Every type in the package is inferred from it.
 
 ## Top level
 
+`xpkitConfigSchema`:
+
 ```jsonc
 {
-  "schemaVersion": "1.0.0",   // gated before field validation — see below
+  "schemaVersion": "1.0.0",
   "projectName": "Energy XP",
-  "announcements": [],        // WhatsNew entries; out of scope for the fixtures
-  "onboarding": { "screens": [] },
+  "announcements": [],
+  "onboarding": { "screens": [], "showSkip": true },
   "gamification": {
-    "levels": [],             // XP thresholds. No app uses these yet.
-    "variables": [],          // the counters conditions read
-    "achievements": [],       // badges
-    "milestones": [],         // thresholds that fire once and apply an effect
-    "streaks": []             // no app uses these yet
+    "levels": [],
+    "variables": [],
+    "achievements": [],
+    "milestones": [],
+    "streaks": []
   }
 }
 ```
 
-`parseConfig` checks `schemaVersion` **before** running Zod, so a v2 file fails with
-`Unsupported schemaVersion: 2.0.0` rather than forty confusing field errors. Keep that
-ordering if you touch it.
+All five top-level keys are required. Arrays may be empty.
 
-`parseOnboardingConfig` accepts either a full config or an onboarding-only file
-(`{ schemaVersion, onboarding }`), because the editor should not have to emit a whole
-gamification suite just to ship four screens.
+## parseConfig
 
-## `AssetRef` — keys, never paths
+```ts
+import { parseConfig } from '@xpkit-dev/core'
+
+const config = parseConfig(JSON.parse(text))
+```
+
+`parseConfig(raw: unknown): XPKitConfig` does three things in order.
+
+1. `raw` must be a plain object, else it throws `Config must be an object.`
+2. `schemaVersion` must equal `1.0.0`, else it throws `Unsupported schemaVersion: 2.0.0`.
+   This runs before zod, so a future file fails with one clear message.
+3. Zod validates the rest. On failure it throws one `Error` that lists every issue as
+   `path: message`, joined by `, `. For example:
+   `gamification.achievements.0.conditions: Every achievement needs at least one unlock condition.`
+
+Defaults are applied in the returned value (see achievements and `showSkip` below).
+
+## AssetRef
 
 ```jsonc
 { "kind": "asset", "key": "onboarding-1" }
 ```
 
-Refused by the schema: anything containing `require(`, or starting with `.` or `/`. A
-path is meaningless across platforms; a key is not. The app answers the key with an
-`AssetMap`:
+An asset is a key, never a path. The schema rejects keys that contain `require(` or start
+with `.` or `/`. The app maps keys to platform values with an `AssetMap`
+(`Record<string, unknown>`), and `resolveAsset(assets, ref)` throws by name when a key is
+missing. `iconText(icon)` returns a string icon as is, and a placeholder for an `AssetRef`.
 
-```ts
-// React Native
-const assets = { "onboarding-1": require("../assets/intro/onboarding-1.mp4") };
-// web (Vite hands back a URL string)
-const assets = { "onboarding-1": onboarding1 };
-```
+## announcements[]
 
-`resolveAsset(assets, ref)` throws by name on a miss — see it happen live by opening the
-Karv fixture in the playground.
+| field | type | notes |
+|---|---|---|
+| `id` | string | trimmed, not empty |
+| `version` | string | `X.X.X`, for example `1.6.0` |
+| `title` | string | trimmed, not empty |
+| `description` | string | trimmed, not empty |
+| `image` | AssetRef | optional |
 
-## `variables[]`
+## onboarding
+
+`onboarding.screens` is an array. `onboarding.showSkip` is a boolean and defaults to `true`.
+Screens are discriminated on `type`. Every screen has a string `id`.
+
+| type | required | optional |
+|---|---|---|
+| `content` | `title`, `body` | `image`, `buttonText`, `disableSwipe`, `hideFooterButton` |
+| `video` | `source` (AssetRef) | `title`, `subtitle`, `buttonText`, `disableSwipe`, `hideFooterButton` |
+| `permission` | `permission` (string), `title` | `subtitle`, `grantedTitle`, `grantedSubtitle`, `grantedButtonText`, `buttonText`, `disableSwipe`, `hideFooterButton` |
+| `notification` | `title` | `subtitle`, `grantedTitle`, `grantedSubtitle`, `grantedButtonText`, `buttonText`, `disableSwipe`, `hideFooterButton` |
+
+See [02](02-onboarding-explained.md).
+
+## gamification
+
+### levels[]
+
+`{ id, name, xpThreshold }`. The engine picks the highest level whose `xpThreshold` is at
+or below the current XP. Order in the file does not matter.
+
+### variables[]
 
 ```jsonc
-{ "id": "progressCreated", "name": "…", "type": "counter", "description": "…" }
+{ "id": "progressCreated", "name": "Progress created", "type": "counter", "description": "..." }
 ```
 
-`id` must match `/^[a-zA-Z_][a-zA-Z0-9_]*$/` — it is an identifier, not a label.
-`type` is `counter | streak | boolean`; everything shipping today is `counter`.
+`id` must match `/^[a-zA-Z_][a-zA-Z0-9_]*$/`. `type` is `counter`, `streak` or `boolean`.
+Only `boolean` changes engine behaviour: a boolean variable is set to `true` instead of
+counting up.
 
-## `conditions[]`
+### achievements[]
 
-```jsonc
-{ "variableId": "progressCreated", "operator": ">=", "threshold": 3 }
-```
+| field | type | default |
+|---|---|---|
+| `id` | string | required, never rename it once users have unlocks |
+| `name` | string | required |
+| `description` | string | `''` |
+| `icon` | string or AssetRef | `''` |
+| `tier`, `rarity`, `category` | string or null | `null` |
+| `hidden` | boolean | `false` |
+| `purpose` | string | `''` |
+| `conditions` | array, at least 1 | required |
 
-Operators: `>= > == < <= !=`. An achievement's conditions are **AND**ed.
-`conditions: []` must **never** unlock — see `docs/03`.
+A condition is `{ variableId, operator, threshold }`. Operators: `>=`, `>`, `==`, `<`,
+`<=`, `!=`. All conditions of one achievement must hold (AND). See [03](03-achievements-explained.md).
 
-## `onboarding.screens[]`
-
-Four types, discriminated on `type`:
-
-| type | fields |
-|---|---|
-| `content` | `id`, `title`, `body`, `image?` |
-| `video` | `id`, `source`, `title?`, `subtitle?`, `buttonText?` |
-| `permission` | `id`, `permission`, `title`, `subtitle?`, `grantedTitle?` |
-| `notification` | `id`, `title`, `subtitle?`, `grantedTitle?` |
-
-## `milestones[]`
+### milestones[]
 
 ```jsonc
 {
   "id": "the-groove", "level": 3, "threshold": 21, "label": "The Groove",
-  "tier": "mastery", "hint": "…",
+  "variableKey": "completionCount", "tier": "mastery", "hint": "...",
   "effect": { "type": "energyReduction", "percent": 25 }
 }
 ```
 
-`effect` is `{ type }` plus whatever that type needs (`.catchall(z.unknown())`) — open
-on purpose, so a new effect kind is a runtime feature and not a schema bump.
+Required: `id`, `level` (number), `threshold` (number), `label`. Optional: `variableKey`,
+`hint`, `tier`, `effect`. When `variableKey` is set the milestone only checks that variable.
+`effect` is `{ type: string }` plus any extra fields. It is passed through to the
+`milestoneReached` signal untouched, so a new effect kind needs no schema change.
 
----
+### streaks[]
 
-# Mapping: Progres → v1
+`{ id, variableKey, milestones: number[] }`. When the variable reaches one of the numbers,
+the engine fires `streakMilestone` once for it.
 
-Source: [`examples/achievements/config.ts`](../examples/achievements/config.ts) (the
-25-badge catalog) and `types.ts` (the 6 counters). Today's shape is minimal —
-`{ id, name, description, emoji, target, goal }`. No operators, no tiers, no levels.
+## importSchema and exportSchema
 
-| today | v1 |
+These describe the editor's level, variable and achievement export, separate from the full config.
+
+| version | shape |
 |---|---|
-| the 6 `GamificationCounters` keys | `variables[]` → `{ id: key, type: "counter", name }` |
-| `id` | `id` — **frozen forever** (Rule 2; unlocks persist by this string) |
-| `emoji` | `icon` |
-| `target` + `goal` | `conditions: [{ variableId: target, operator: ">=", threshold: goal }]` |
-| `counters[target] >= goal` | AND over `conditions` |
-| the `// ── Progress Creation ──` section comments | `category` |
+| `1.0.0` (`exportSchemaV1_0`) | `{ schemaVersion: '1.0.0', projectName, levels }` |
+| `1.1.0` (`exportSchemaV1_1`) | the above with `schemaVersion: '1.1.0'`, plus `variables` and `achievements` (both default to `[]`) |
 
-**Order.** Display order today is `Object.values(ACHIEVEMENTS)` — i.e. insertion order
-in `config.ts`. That is preserved as array order in `progres.json`, and it is what the
-spec test asserts. `variables[]` order follows the `GamificationCounters` interface
-declaration order (note `progressAchieved` before `pathAchieved`).
+`importSchema` accepts both, discriminated on `schemaVersion`. `exportSchema` is the 1.1.0
+schema, the one new exports use. Use `.parse` or `.safeParse` on them. They do not have
+the version gate message of `parseConfig`.
 
-# Mapping: Energy XP onboarding → v1
+## Known gaps
 
-Source: [`examples/usage/energy-xp-onboardingScreens.tsx`](../examples/usage/energy-xp-onboardingScreens.tsx).
+- No per-entity variables. A counter is global. A per-habit counter, such as Karv's
+  `completionCount`, is declared as one plain counter in `fixtures/karv.json`.
+- No `custom` screen type. A JSON file cannot carry a component.
+- The permission screen has no `icon` or `skipText`.
+- Naming is not uniform. Conditions use `variableId`. Milestones and streaks use
+  `variableKey`.
+- No effect type is defined by the schema. Effects are open on purpose.
 
-| today | v1 |
-|---|---|
-| `require("../assets/intro/onboarding-2.mp4")` | `source: { kind: "asset", key: "onboarding-2" }` |
-| `type: "notification-permission"` | `type: "notification"` |
-| `onFirstComplete` prop | the `onComplete` prop |
-| `isOnboarded` / `lastSeenVersion` in the app | inside the library's store |
-| (no ids today — screens are positional) | `id`, minted per screen |
+## Using the platform packages
 
-The shipped app opens on **`onboarding-2.mp4`**, not `-1`. That is not a mistake in the
-fixture; it is the shipped order, and `fixtures.test.ts` pins it.
-
-# Mapping: Karv → v1
-
-Source: `examples/milestones/milestones.ts` + `examples/usage/karv-onboardingScreens.tsx`.
-
-| today | v1 |
-|---|---|
-| `count` | `threshold` |
-| `level` | `level` — **karv's frozen field** (`milestone_achieved.id = ${habitId}_${level}`) |
-| `label`, `tier`, `hint` | same |
-| `reductionPercent` | `effect: { type: "energyReduction", percent }` |
-| — | `id`, minted as a slug. New, and free to change — karv persists by `level`. |
-
----
-
-# ⚠️ v1 can't reproduce today's onboarding yet
-
-Writing the fixtures surfaced fields the apps use that PR #13's schema has no slot for.
-These are **feedback for intern A**, documented rather than silently patched into
-`shared/index.ts` — widening the schema here would just hide the divergence until it
-became a data migration.
-
-## Missing fields
-
-- **`notification` screen**: no `grantedSubtitle`, `grantedButtonText`, `buttonText`.
-  Energy XP ships `grantedSubtitle: "We'll nudge you when it matters."` and karv ships
-  `"We'll remind you when it matters."` — both are dropped in the fixtures.
-- **`permission` screen**: no `icon`, `buttonText`, `grantedButtonText`, `skipText`,
-  `grantedSubtitle`.
-- **every screen**: no `disableSwipe`, `hideFooterButton`. Both are real crayons
-  features the carousel reads.
-- **`content` screen**: crayons calls the body `content`, the schema calls it `body`.
-- crayons has a fifth screen type, `custom` (an escape hatch taking a ReactNode). v1 has
-  no slot for it, and arguably shouldn't — a JSON contract can't carry a component.
-
-## Naming inconsistencies to settle before anything persists
-
-| concept | schema says | brief §7 says | crayons says |
-|---|---|---|---|
-| condition's variable | `variableId` | `variableKey` | — |
-| condition's operator | `operator` | `op` | — |
-| condition's value | `threshold` | `value` | — |
-| a variable's label | `name` | `label` | — |
-| content body | `body` | — | `content` |
-
-Worse, the inconsistency is **inside** the schema already: `conditionSchema` uses
-`variableId` while `streakSchema` uses `variableKey` for the same concept. Pick one.
-
-This repo implements the schema's spelling (`variableId` / `operator` / `threshold` /
-`name`) because PR #13 is the base. Changing it later is cheap **as long as nothing has
-persisted yet** — which is exactly why it should be settled now.
-
-## Modelling gaps
-
-- **Per-entity variables.** Progres's six counters are global integers. Karv's
-  `completionCount` is per-habit — every habit has its own, and milestones fire against
-  each one independently. `variables[]` has no way to say "one of these per entity", so
-  `karv.json` declares `completionCount` as a plain counter with a note. Any real karv
-  integration needs this resolved.
-- **`StorageAdapter` shape.** PR #13 defines `{ get, set }`. This repo defines
-  `{ getItem, setItem, removeItem }`, matching zustand's `StateStorage` — which is what
-  makes MMKV (sync), AsyncStorage (async) and `localStorage` all work through one
-  interface, hydration included, and what lets web skip writing an adapter entirely.
-  `{ get, set }` can't express removal and can't be async. See `docs/04`.
-- **Rule 8.** The brief says core has zero runtime deps. This repo adds `zustand`. The
-  amended rule: *no **platform** code in the shared layer.* `zod` and zustand vanilla are
-  platform-free; `react-native` and `react-native-mmkv` are not. Flagged rather than
-  quietly broken.
+The React Native package reads this same config. See
+[`../packages/react-native/README.md`](../packages/react-native/README.md).

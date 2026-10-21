@@ -1,135 +1,97 @@
-# 02 — How the real onboarding works
+# 02. Onboarding
 
-The carousel you are rebuilding ships in three App Store apps. Read
-[`examples/onboarding/`](../examples/onboarding/) alongside this file: this is the
-commentary, that is the source.
+`@xpkit-dev/core` owns the data and the lifecycle of onboarding. It draws nothing.
+Renderers live in the platform packages, for example
+[`../packages/react-native/README.md`](../packages/react-native/README.md).
 
-Two files carry the whole thing. `Onboarding.tsx` is 36 lines of lifecycle.
-`OnboardingCarousel.tsx` is the state machine. Everything else is a slide.
-
----
-
-## The lifecycle wrapper — why the app integration is one line
-
-```tsx
-// examples/onboarding/Onboarding.tsx
-export const Onboarding = ({ screens, onFirstComplete, showSkip = true }) => {
-  const { isOnboarded, complete } = useOnboardingStore();
-  if (isOnboarded) return null;
-  return <OnboardingInner … />;
-};
-```
-
-That early `return null` is the entire reason
-[`examples/usage/energy-xp-layout-excerpt.tsx`](../examples/usage/energy-xp-layout-excerpt.tsx)
-has no onboarding logic in it. The component is mounted unconditionally as a **sibling of
-the router**, absolutely-filling the screen at `zIndex: 9999`. It is not a route. There is
-no "should I navigate to onboarding?" decision anywhere in any of the three apps, and no
-race between the splash screen and the first slide.
-
-Copy this. `<Onboarding>` renders nothing when there is nothing to show.
-
-## Replay — the one non-obvious piece of state
-
-Two fields persist, and you need both:
-
-| field | set when | read for |
-|---|---|---|
-| `isOnboarded` | on completion; cleared by `replay()` | "should I render at all?" |
-| `lastSeenVersion` | on completion; **never cleared** | "has this user been here before?" |
+## Parsing
 
 ```ts
-const isReplay = useOnboardingStore.getState().lastSeenVersion !== null;
+import { parseConfig, parseOnboardingConfig } from '@xpkit-dev/core'
+
+const fromFull = parseConfig(raw).onboarding
+const fromFile = parseOnboardingConfig(raw)
 ```
 
-`isOnboarded` alone can't answer that, because `replay()` sets it back to `false`. The
-asymmetry *is* the mechanism. A replay changes two behaviours:
+`parseOnboardingConfig(raw)` accepts a full config or an onboarding-only file:
 
-1. **`onComplete` does not fire.** Re-watching the intro from Settings must not re-present
-   the paywall. (crayons: `if (!isReplay && onFirstComplete) onFirstComplete()`.)
-2. **Permission slides stop auto-advancing.** See below.
-
-`replay()` is the whole Settings integration:
-
-```tsx
-<SettingsRow label="View onboarding again" onPress={replayOnboarding} />
+```json
+{ "schemaVersion": "1.0.0", "onboarding": { "screens": [] } }
 ```
 
-## The five slide types (v1 has four)
+`projectName` is optional in that file. The version gate and the error format are the same
+as `parseConfig` (see [01](01-json-contract.md)). It returns `{ screens, showSkip }`.
 
-| type | what it does |
+Screen types are in [01](01-json-contract.md). Core also exports the narrowed types
+`ContentScreen`, `VideoScreen`, `PermissionScreen` and `NotificationScreen`, for a renderer's
+`switch (screen.type)`.
+
+## Assets
+
+Screens refer to media with `{ kind: 'asset', key }`. The renderer receives an `AssetMap`
+and calls `resolveAsset(assets, ref)`. A missing key throws an error that names the key
+and lists the known ones.
+
+## Permissions
+
+`permission` and `notification` screens need the OS. Core does not import any native
+module. It defines the types a renderer takes instead.
+
+- `PermissionHandler`: `check()`, `request()`, optional `openSettings()`.
+- `PermissionHandlers`: a record keyed by permission id. A `notification` screen looks up
+  `notifications`. A `permission` screen looks up its own `permission` field.
+- `PermissionStatus`: `granted`, `denied` or `blocked`.
+
+A missing handler should degrade to a skippable screen, not a crash.
+`OnboardingProps` documents the props a renderer is expected to accept (`config`, `assets`,
+`onComplete`, `onSkip`, `showSkip`, `permissions`, `testID`).
+
+## The onboarding store
+
+```ts
+import { configureXPKit, getOnboardingStore, replayOnboarding } from '@xpkit-dev/core'
+
+configureXPKit({ keyPrefix: 'energy-xp', appVersion: '1.7.1' })
+
+const store = getOnboardingStore()
+store.getState().complete()
+```
+
+State has two fields:
+
+| field | meaning |
 |---|---|
-| `content` | centred title + body in a `ScrollView`, optional image |
-| `video` | looping muted video, aspect-ratio measured from the track, tap-to-play overlay |
-| `permission` | generic: injected `onGrant` / `onCheckStatus` |
-| `notification-permission` | `expo-notifications` hard-wired — v1 calls this `notification` |
-| `custom` | arbitrary ReactNode. **Not in v1** — a JSON contract can't carry a component. |
+| `isOnboarded` | `true` once finished. A renderer shows nothing when it is `true`. |
+| `lastSeenVersion` | the `appVersion` from `configureXPKit` at completion, or `null` |
 
-### Video
+Actions:
 
-`VideoSlide` reads the video's real dimensions from the `sourceLoad` event and sets
-`aspectRatio` from them, rather than hardcoding a box. It also re-plays on
-`AppState → active`, because iOS pauses video when the app backgrounds and the slide would
-otherwise sit frozen. Both details are worth keeping; neither is obvious.
+| action | effect |
+|---|---|
+| `complete()` | `isOnboarded = true`, `lastSeenVersion = appVersion` |
+| `replay()` | `isOnboarded = false`, `lastSeenVersion` is kept |
+| `reset()` | both back to `false` and `null`, so the next launch is a first run |
 
-### Permission slides
+The store is a zustand vanilla store, persisted under `<keyPrefix>:onboarding`
+(`xpkit:onboarding` by default). Use `createOnboardingStore({ name, persist })` for a
+separate instance. `persist: false` skips storage and is meant for tests.
+`getOnboardingStore()` returns a lazy singleton, so call `configureXPKit` first.
+`replayOnboarding()` calls `replay()` on it. Wire it to a "View onboarding again" row.
+`resetOnboardingStoreForTests()` drops the singleton.
 
-A five-state machine: `checking → idle | granted | blocked | denied`.
+## Replay semantics
 
-- `checking` renders **`null`**, not a spinner. A one-frame flash of "Allow
-  Notifications" before discovering permission was already granted looks broken.
-- **`granted` → auto-advance after 600 ms**, and only when `autoAdvance` is true — which
-  is `!isReplay`. First run: the user granted, so move on, the 600 ms just lets them see
-  the green check. Replay: they are *browsing*, so let them page at their own speed.
-- `blocked` (permission denied at OS level, `canAskAgain === false`) can't be re-prompted,
-  so the slide shows an "Open Settings" button and subscribes to
-  `AppState → active` to re-check when the user comes back.
+`replay()` clears `isOnboarded` but keeps `lastSeenVersion`. So `lastSeenVersion !== null`
+means the user has seen onboarding before. A renderer uses that to tell a first run from a
+replay. By contract, `onComplete` fires on the first completion only, which is where a
+paywall goes, and a replay does not fire it.
 
-## The footer button label
+`lastSeenVersion` is only as useful as the `appVersion` you configure. If you do not pass
+one, it stays `null` after `complete()`, and replay cannot be detected.
 
-One button, five rules, checked in this order (`getButtonText()`):
+## Async storage
 
-1. permission slide, not granted → **"Continue without"**
-2. permission slide, granted, `grantedButtonText` set → that
-3. screen sets `buttonText` → that
-4. last screen → **"Get Started"**
-5. otherwise → **"Next"**
-
-Rule 1 is the important one and the easiest to get wrong. On a permission slide the
-"Allow" affordance is *inside* the slide; the footer button is the way past it. Labelling
-it "Next" makes declining feel like a dead end, and "Skip" reads as skipping onboarding
-rather than skipping the permission. "Continue without" says exactly what happens.
-
-## Everything else in the chrome
-
-- **Back chevron** in the header, from slide 2 onward. Slide 1 renders an empty
-  same-width `View` so the Skip button doesn't jump.
-- **Skip** in the header, right side, when `showSkip && onSkip`. Skipping still marks the
-  user onboarded — it is not a cancel.
-- **Pagination dots** driven by a continuous `position + offset` value, so the active dot
-  slides with the drag rather than snapping on page change. On web, `scroll-snap` plus a
-  scroll listener gets you the same value.
-- **`goToIndex` resets `permissionGranted` to false.** Paging away from a permission slide
-  must not leave the footer label stuck on `grantedButtonText`.
-- Per-screen `disableSwipe` and `hideFooterButton` exist in crayons but **not in v1** —
-  see the parity gaps in `docs/01`.
-
-## What to build differently
-
-- **`ScrollView pagingEnabled` (native) / `scroll-snap` (web), not PagerView.**
-  `react-native-pager-view` has no web build, and crayons already made exactly this swap
-  for `SettingsList` in 0.0.179. Losing PagerView also removes the need for Reanimated's
-  `useEvent`/`useHandler`, which only existed to read its `onPageScroll`.
-- **Permissions behind an injected handler** (`PermissionHandlers` in
-  `onboarding/types.ts`), not a top-level `expo-notifications` import. A missing handler
-  must degrade to a skippable slide, never a crash.
-- **Storage behind the adapter.** See `docs/04`.
-- **Your own theme.** Do not import crayons; `theme/typography.ts` throws on web.
-
-## Hydration
-
-If the injected storage is async (AsyncStorage), the persisted state is not available on
-the first render. Render nothing until `persist`'s hydration settles
-(`hasHydrated()` / `onFinishHydration`), or every cold start shows a returning user a
-flash of slide 1. `localStorage` and MMKV are synchronous and hide this bug — which is
-exactly why it needs handling up front rather than after the first RN build.
+With an async adapter the store hydrates after creation. `persist` provides
+`store.persist.hasHydrated()` and `store.persist.onFinishHydration(fn)`. A renderer should
+render nothing until hydration finishes, or a returning user sees the first screen for a
+moment. See [04](04-storage-and-state.md).
