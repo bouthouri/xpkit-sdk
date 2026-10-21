@@ -3,6 +3,21 @@
   "version": "0.0.0",
   "description": "XP Kit core engine: config schema, levels, streaks, milestones, achievements and persisted stores. Platform-free.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bouthouri/xpkit-sdk.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/bouthouri/xpkit-sdk/tree/main/packages/core#readme",
+  "bugs": {
+    "url": "https://github.com/bouthouri/xpkit-sdk/issues"
+  },
+  "keywords": [
+    "gamification",
+    "achievements",
+    "onboarding",
+    "xp"
+  ],
   "type": "module",
   "sideEffects": false,
   "main": "./dist/index.js",
@@ -11,13 +26,19 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    },
-    "./fixtures/*.json": "./fixtures/*.json"
+    }
   },
   "files": [
     "dist",
-    "fixtures/*.json"
+    "README.md",
+    "LICENSE"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
     "test": "bun test",
