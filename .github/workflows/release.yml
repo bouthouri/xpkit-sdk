@@ -35,7 +35,7 @@ jobs:
         uses: changesets/action@v1
         with:
           version: bun run version-packages
-          # bun pm pack per package (rewrites workspace:* to real versions), then
+          # bun pm pack per package (scripts/check-pack.ts rewrites workspace:* to ^<current version>), then
           # npm publish <tgz> --access public --provenance (OIDC). See scripts/publish-tarballs.ts.
           publish: bun run release
           commit: "chore: release packages"

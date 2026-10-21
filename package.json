@@ -7,7 +7,7 @@
   ],
   "scripts": {
     "build": "bun run --filter '@xpkit-dev/core' build && bun run --filter '@xpkit-dev/react-native' build",
-    "test": "bun run --filter '*' test",
+    "test": "bun run --filter '*' test && bun test scripts",
     "typecheck": "bun run --filter '*' typecheck",
     "check:pack": "bun scripts/check-pack.ts",
     "changeset": "changeset",
