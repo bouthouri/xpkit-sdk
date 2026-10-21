@@ -9,8 +9,21 @@ and persists it through an injected storage adapter; renderers stay thin and per
 | Package | Path | What it is |
 |---|---|---|
 | `@xpkit-dev/core` | [`packages/core`](packages/core) | Config schema (zod), `parseConfig`, `createEngine`, achievements, persisted stores, `StorageAdapter`. No UI, no platform APIs. |
+| `@xpkit-dev/react-native` | [`packages/react-native`](packages/react-native) | Available. `XPKitProvider`, hooks (`useEmit`, `useLevel`, `useUnlockedAchievements`, signal hooks), `createMMKVStorage`, `AchievementBadge` / `AchievementGrid`, `OnboardingCarousel`, `WhatsNew`. |
 
-`examples/` is reserved for workspace apps. Older reference material (vendored app code the
+## Example app
+
+[`examples/expo-app`](examples/expo-app) is an Expo SDK 55 app wired to `@xpkit-dev/react-native`
+(onboarding, a "Complete" button, levels, achievement grid, MMKV persistence). It needs a dev
+build (react-native-mmkv is native), not Expo Go:
+
+```bash
+bun install
+bun run build                      # the app consumes the built packages
+cd examples/expo-app && bunx expo run:ios
+```
+
+Older reference material (vendored app code the
 engine was extracted from) lives in [`docs/reference/examples`](docs/reference/examples).
 
 ## Develop
