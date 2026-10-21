@@ -4,5 +4,9 @@ dist/
 .DS_Store
 .env
 packages/*/dist
+
+examples/expo-app/ios
+examples/expo-app/android
+.expo
 *.tgz
 .pack/
