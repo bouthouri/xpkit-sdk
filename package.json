@@ -8,6 +8,14 @@
   "scripts": {
     "build": "bun run --filter '@xpkit-dev/core' build && bun run --filter '@xpkit-dev/react-native' build",
     "test": "bun run --filter '*' test",
-    "typecheck": "bun run --filter '*' typecheck"
+    "typecheck": "bun run --filter '*' typecheck",
+    "check:pack": "bun scripts/check-pack.ts",
+    "changeset": "changeset",
+    "version-packages": "changeset version && bun install --lockfile-only",
+    "release": "bun run build && bun scripts/check-pack.ts --out .pack && bun scripts/publish-tarballs.ts",
+    "release:dry": "bun run build && bun scripts/check-pack.ts --out .pack && bun scripts/publish-tarballs.ts --dry-run"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^3.0.3"
   }
 }

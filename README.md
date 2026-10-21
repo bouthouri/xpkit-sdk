@@ -4,6 +4,41 @@ XP Kit turns a JSON config (onboarding screens, levels, variables, achievements,
 milestones, streaks) into app behaviour. One platform-free engine decides what unlocks
 and persists it through an injected storage adapter; renderers stay thin and per platform.
 
+## Install
+
+```bash
+bun add @xpkit-dev/core @xpkit-dev/react-native
+```
+
+## Usage
+
+Core (any JS runtime):
+
+```ts
+import { parseConfig, createEngine, createMemoryStorage } from '@xpkit-dev/core'
+
+const config = parseConfig(rawJson)
+const engine = createEngine(config, { storage: createMemoryStorage() })  // or your own StorageAdapter
+engine.subscribe(signal => console.log(signal.type))
+await engine.ready
+engine.emit({ type: 'tasks_completed' })         // a variable id from your config
+```
+
+React Native:
+
+<!-- coming soon, PRS-457: @xpkit-dev/react-native does not exist yet -->
+```tsx
+import { XPKitProvider, useXPKit } from '@xpkit-dev/react-native'
+
+export default function App() {
+  return (
+    <XPKitProvider config={config} storage={mmkvStorage}>
+      <Home />
+    </XPKitProvider>
+  )
+}
+```
+
 ## Packages
 
 | Package | Path | What it is |
