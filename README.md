@@ -30,6 +30,9 @@ Or run a single package: `cd packages/core && bun test`.
 
 ## Docs
 
-The notes in [`docs/`](docs) describe the JSON contract, onboarding, achievements and
-storage. Test fixtures (three real app configs) are in
+Start with [`docs/05-quickstart.md`](docs/05-quickstart.md). The other notes in
+[`docs/`](docs) cover the [JSON contract](docs/01-json-contract.md),
+[onboarding](docs/02-onboarding-explained.md),
+[achievements](docs/03-achievements-explained.md) and
+[storage](docs/04-storage-and-state.md). Test fixtures (three real app configs) are in
 [`packages/core/fixtures`](packages/core/fixtures).
