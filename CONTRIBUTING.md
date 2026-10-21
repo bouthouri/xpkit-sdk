@@ -8,6 +8,7 @@ bun run typecheck
 bun run test
 bun run build
 bun run check:pack   # tarballs contain only dist, README.md, LICENSE, package.json
+bun run release:dry  # bun pm pack + npm publish --dry-run of every package (no upload)
 ```
 
 ## Changesets

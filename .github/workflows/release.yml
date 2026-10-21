@@ -35,10 +35,10 @@ jobs:
         uses: changesets/action@v1
         with:
           version: bun run version-packages
-          # changeset publish runs `npm publish --access public` per package; provenance via env.
+          # bun pm pack per package (rewrites workspace:* to real versions), then
+          # npm publish <tgz> --access public --provenance (OIDC). See scripts/publish-tarballs.ts.
           publish: bun run release
           commit: "chore: release packages"
           title: "chore: release packages"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_CONFIG_PROVENANCE: "true"
