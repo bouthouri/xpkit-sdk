@@ -1,6 +1,6 @@
 {
   "name": "@xpkit-dev/core",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "XP Kit core engine: config schema, levels, streaks, milestones, achievements and persisted stores. Platform-free.",
   "license": "MIT",
   "repository": {
