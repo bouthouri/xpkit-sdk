@@ -6,7 +6,7 @@
     "examples/*"
   ],
   "scripts": {
-    "build": "bun run --filter '*' build",
+    "build": "bun run --filter '@xpkit-dev/core' build && bun run --filter '@xpkit-dev/react-native' build",
     "test": "bun run --filter '*' test",
     "typecheck": "bun run --filter '*' typecheck",
     "check:pack": "bun scripts/check-pack.ts",

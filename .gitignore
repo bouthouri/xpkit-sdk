@@ -6,3 +6,7 @@ dist/
 packages/*/dist
 *.tgz
 .pack/
+
+examples/expo-app/ios
+examples/expo-app/android
+.expo
