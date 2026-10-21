@@ -1,11 +1,11 @@
 # 03 — How the real achievements work
 
 25 badges driven by 6 integer counters, shipping in Progres today. Source:
-[`examples/achievements/config.ts`](../examples/achievements/config.ts) (the catalog) and
-[`examples/achievements/gamification-slice.tsx`](../examples/achievements/gamification-slice.tsx)
+[`examples/achievements/config.ts`](reference/examples/achievements/config.ts) (the catalog) and
+[`examples/achievements/gamification-slice.tsx`](reference/examples/achievements/gamification-slice.tsx)
 (the engine, ~30 lines of it).
 
-Translated to v1 in [`fixtures/progres.json`](../fixtures/progres.json). Your job is
+Translated to v1 in [`fixtures/progres.json`](../packages/core/fixtures/progres.json). Your job is
 [`achievements/engine.ts`](../achievements/engine.ts) — a pure version of that slice.
 
 ---
@@ -84,7 +84,7 @@ An array of ids. Not objects, not indices — **ids**.
 
 Which makes `id` **frozen forever (Rule 2)**. Rename one and every user who had that badge
 silently loses it. If you want to know what fixing that costs after the fact, read
-[`examples/usage/energy-xp-onboarding-migration.ts`](../examples/usage/energy-xp-onboarding-migration.ts)
+[`examples/usage/energy-xp-onboarding-migration.ts`](reference/examples/usage/energy-xp-onboarding-migration.ts)
 — 60 lines, two fallback paths, and a permanent migration flag, all to rename one
 persistence key.
 
@@ -126,8 +126,8 @@ unlock logic.
 
 ## What the shipped UI does with all this
 
-[`achievement-badge.tsx`](../examples/achievements/achievement-badge.tsx): a locked badge
+[`achievement-badge.tsx`](reference/examples/achievements/achievement-badge.tsx): a locked badge
 shows 🔒 / `???` / "Keep progressing to unlock!" — never the real name or description.
-[`achievement-list.tsx`](../examples/achievements/achievement-list.tsx): two-column
-`FlatList`. [`achievements-screen.tsx`](../examples/achievements/achievements-screen.tsx):
+[`achievement-list.tsx`](reference/examples/achievements/achievement-list.tsx): two-column
+`FlatList`. [`achievements-screen.tsx`](reference/examples/achievements/achievements-screen.tsx):
 an "N/25 achievements unlocked" header.

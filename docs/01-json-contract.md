@@ -5,7 +5,7 @@ XP Kit has two halves that never see each other's code. An **editor** emits JSON
 the exact translation from what the apps hardcode today, plus an honest list of what v1
 cannot yet express.
 
-The schema lives in one file: [`shared/index.ts`](../shared/index.ts). It is Zod, and
+The schema lives in one file: [`shared/index.ts`](../packages/core/src/schema.ts). It is Zod, and
 it is the only definition of these shapes in the repo — `onboarding/types.ts` and
 `achievements/types.ts` both re-export from it rather than restating anything.
 
@@ -103,7 +103,7 @@ on purpose, so a new effect kind is a runtime feature and not a schema bump.
 
 # Mapping: Progres → v1
 
-Source: [`examples/achievements/config.ts`](../examples/achievements/config.ts) (the
+Source: [`examples/achievements/config.ts`](reference/examples/achievements/config.ts) (the
 25-badge catalog) and `types.ts` (the 6 counters). Today's shape is minimal —
 `{ id, name, description, emoji, target, goal }`. No operators, no tiers, no levels.
 
@@ -123,7 +123,7 @@ declaration order (note `progressAchieved` before `pathAchieved`).
 
 # Mapping: Energy XP onboarding → v1
 
-Source: [`examples/usage/energy-xp-onboardingScreens.tsx`](../examples/usage/energy-xp-onboardingScreens.tsx).
+Source: [`examples/usage/energy-xp-onboardingScreens.tsx`](reference/examples/usage/energy-xp-onboardingScreens.tsx).
 
 | today | v1 |
 |---|---|

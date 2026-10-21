@@ -23,7 +23,7 @@ That is task 1.
 
 **File:** [`achievements/engine.ts`](../achievements/engine.ts)
 **Read first:** [`03-achievements-explained.md`](03-achievements-explained.md), then
-[`examples/achievements/gamification-slice.tsx`](../examples/achievements/gamification-slice.tsx)
+[`examples/achievements/gamification-slice.tsx`](reference/examples/achievements/gamification-slice.tsx)
 **Test:** `bun test achievements`
 
 Six functions, none longer than a dozen lines:
@@ -59,7 +59,7 @@ appear in the event log and the badges unmask as you go. That is your engine run
 
 **File:** [`onboarding/web/index.tsx`](../onboarding/web/index.tsx) (a placeholder today)
 **Read first:** [`02-onboarding-explained.md`](02-onboarding-explained.md), then
-[`examples/onboarding/OnboardingCarousel.tsx`](../examples/onboarding/OnboardingCarousel.tsx)
+[`examples/onboarding/OnboardingCarousel.tsx`](reference/examples/onboarding/OnboardingCarousel.tsx)
 and the five slides next to it
 **Check:** `bun dev` → Energy XP tab
 
@@ -94,7 +94,7 @@ bundled — a missing asset should be visibly missing, not a crash).
 **Files:** [`onboarding/store.ts`](../onboarding/store.ts),
 [`achievements/store.ts`](../achievements/store.ts)
 **Read first:** [`04-storage-and-state.md`](04-storage-and-state.md), then
-[`examples/onboarding/onboarding-store.ts`](../examples/onboarding/onboarding-store.ts)
+[`examples/onboarding/onboarding-store.ts`](reference/examples/onboarding/onboarding-store.ts)
 **Check:** reload the browser and your state survives
 
 `createStore` from `zustand/vanilla` (not `create` from `zustand` — that pulls in React),

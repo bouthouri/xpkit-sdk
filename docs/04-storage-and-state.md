@@ -27,7 +27,7 @@ configureXPKit({ storage: localStorage });                                      
 **Ordering matters.** Options are frozen the first time any store is created. Call
 `configureXPKit` before the first XP Kit component mounts; calling it later is a no-op with
 a warning. This is the same constraint crayons has, and the reason
-[`energy-xp/app/_layout.tsx`](../examples/usage/energy-xp-layout-excerpt.tsx) has
+[`energy-xp/app/_layout.tsx`](reference/examples/usage/energy-xp-layout-excerpt.tsx) has
 `import "../utils/onboarding-migration"` on **line 2** — above the crayons import.
 
 On web there is nothing to configure: `localStorage` already satisfies `StorageAdapter`, so
@@ -160,7 +160,7 @@ The rule: **user state persists, config does not.** Config arrives fresh from th
 every launch, which is what lets the editor ship a copy fix or a new badge without a
 migration. Persisting a derived or config value turns every future edit into a data
 problem — see
-[`examples/usage/energy-xp-onboarding-migration.ts`](../examples/usage/energy-xp-onboarding-migration.ts)
+[`examples/usage/energy-xp-onboarding-migration.ts`](reference/examples/usage/energy-xp-onboarding-migration.ts)
 for the shape of that mistake, already paid for once.
 
 Keys are namespaced by `keyPrefix`, so two of these apps on one device never collide.

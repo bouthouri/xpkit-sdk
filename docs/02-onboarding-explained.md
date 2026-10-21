@@ -1,7 +1,7 @@
 # 02 — How the real onboarding works
 
 The carousel you are rebuilding ships in three App Store apps. Read
-[`examples/onboarding/`](../examples/onboarding/) alongside this file: this is the
+[`examples/onboarding/`](reference/examples/onboarding/) alongside this file: this is the
 commentary, that is the source.
 
 Two files carry the whole thing. `Onboarding.tsx` is 36 lines of lifecycle.
@@ -21,7 +21,7 @@ export const Onboarding = ({ screens, onFirstComplete, showSkip = true }) => {
 ```
 
 That early `return null` is the entire reason
-[`examples/usage/energy-xp-layout-excerpt.tsx`](../examples/usage/energy-xp-layout-excerpt.tsx)
+[`examples/usage/energy-xp-layout-excerpt.tsx`](reference/examples/usage/energy-xp-layout-excerpt.tsx)
 has no onboarding logic in it. The component is mounted unconditionally as a **sibling of
 the router**, absolutely-filling the screen at `zIndex: 9999`. It is not a route. There is
 no "should I navigate to onboarding?" decision anywhere in any of the three apps, and no
