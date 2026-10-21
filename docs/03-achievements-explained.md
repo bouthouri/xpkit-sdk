@@ -1,133 +1,106 @@
-# 03 — How the real achievements work
+# 03. Achievements, XP and levels
 
-25 badges driven by 6 integer counters, shipping in Progres today. Source:
-[`examples/achievements/config.ts`](reference/examples/achievements/config.ts) (the catalog) and
-[`examples/achievements/gamification-slice.tsx`](reference/examples/achievements/gamification-slice.tsx)
-(the engine, ~30 lines of it).
+Core has two ways to track progress. Both read the same config.
 
-Translated to v1 in [`fixtures/progres.json`](../packages/core/fixtures/progres.json). Your job is
-[`achievements/engine.ts`](../achievements/engine.ts) — a pure version of that slice.
+- `createEngine`: one engine for variables, XP, levels, achievements, milestones and streaks.
+- The achievements store: counters and unlocked badges only.
 
----
+## Conditions
 
-## The 6 counters and where they come from
+```ts
+{ variableId: 'pathCreated', operator: '>=', threshold: 3 }
+```
 
-Every badge in the app is one counter crossing one number. That is the whole model.
+- `conditionMet(condition, counters)` checks one condition. All six operators work:
+  `>=`, `>`, `==`, `<`, `<=`, `!=`.
+- `conditionsMet(achievement, counters)` is true when every condition holds (AND).
+- An achievement with no conditions never unlocks. The schema also rejects it, with
+  `Every achievement needs at least one unlock condition.`
+- `counters` is a `CounterState`, a `Record<string, number>`. A missing key reads as 0
+  (`counterValue`).
 
-| counter | incremented by | call site |
+## Pure functions
+
+These take state in and return new state. They never mutate their input.
+
+| function | what it does |
+|---|---|
+| `evaluateUnlocks({ catalog, counters, unlocked })` | ids that should unlock now, in catalog order |
+| `applyIncrement({ catalog, counters, unlocked, variableId, by? })` | adds `by` (default 1), then evaluates the whole catalog |
+| `applySetCounter({ ..., variableId, value })` | sets a counter, then evaluates. For import and restore |
+| `withStatus({ catalog, counters, unlocked })` | each achievement plus `isUnlocked` and `progress` (0 to 100) |
+| `progressOf(achievement, counters)` | the progress of the least complete condition |
+
+`applyIncrement` and `applySetCounter` return `{ counters, unlocked, newlyUnlocked }`.
+Comparisons use `>=`, so one call that jumps a counter from 0 to 50 unlocks every badge
+whose threshold is passed, in catalog order. An unlocked achievement shows `progress: 100`.
+
+## The engine
+
+```ts
+import { createEngine, createMemoryStorage, parseConfig } from '@xpkit-dev/core'
+
+const engine = createEngine(parseConfig(raw), { storage: createMemoryStorage() })
+engine.emit({ type: 'pathCreated' })
+```
+
+`emit({ type })` treats `type` as a variable id. One event does this, in order:
+
+1. A `boolean` variable is set to `true`. Any other variable goes up by 1. A variable that
+   is not declared in `variables` counts up as well.
+2. XP goes up by 1. Every event is worth 1 XP, whatever the variable.
+3. Achievements are evaluated. Booleans count as 1 or 0.
+4. Milestones are evaluated for that variable.
+5. Streaks are evaluated for that variable.
+6. The level is evaluated.
+7. The state is saved (see [04](04-storage-and-state.md)).
+
+`getState()` returns a copy: `variables`, `unlockedAchievements`, `milestoneLevels`,
+`reachedStreakMilestones`, `xp` and `currentLevelId`. Mutating it changes nothing.
+
+### Signals
+
+`engine.subscribe(listener)` returns an unsubscribe function. The listener gets an
+`EngineSignal`:
+
+| signal | when | fields |
 |---|---|---|
-| `progressCreated` | `addProgres()` | `ProgressSlice.ts:46` |
-| `pathCreated` | `addPath()` | `ProgressSlice.ts:143` |
-| `goalCreated` | `updatePath()` when a path gains a `.goal` | `ProgressSlice.ts:166` |
-| `goalAchieved` | a score crosses its `.goal`, **or** a number-path milestone is hit | `ProgressSlice.ts:177, 199` |
-| `pathAchieved` | `markStepAsDone()` finishes a path's last step | `ProgressSlice.ts:306` |
-| `progressAchieved` | `markStepAsDone()` takes a progres to 100% | `ProgressSlice.ts:314` |
+| `achievementUnlocked` | all conditions are met for the first time | `id` |
+| `milestoneReached` | the variable reaches the milestone `threshold`, once per entity and level | `id`, `effect` |
+| `levelUp` | the level changes | `levelId` |
+| `streakMilestone` | the variable reaches a value in `streak.milestones`, once each | `id`, `value` |
 
-Seven call sites, six counters — `goalAchieved` has two. Notice what none of them know:
-nothing in `ProgressSlice` mentions an achievement. Domain code emits a domain event and
-the engine decides what that means. Keep that boundary; it is what makes the engine
-testable and what lets the same engine sit behind Zustand, LiveStore, or a browser page.
+A milestone with `variableKey` only checks that variable. A milestone without it is checked
+against whichever variable was just emitted.
 
-## Full-catalog scan on every increment
+### Levels
 
-```ts
-// gamification-slice.tsx, inside incrementCounter
-state.counters[counterKey] += 1;
+Levels are sorted by `xpThreshold`. The current level is the highest one with
+`xpThreshold <= xp`. `levelUp` fires only when the level id changes, so a level with
+threshold 0 fires on the first event. Before that, `currentLevelId` is `null`.
 
-newlyUnlocked = Object.entries(ACHIEVEMENTS).filter(([id, achievement]) => {
-  if (state.unlockedAchievements.includes(id)) return false;
-  return state.counters[achievement.target] >= achievement.goal;
-});
-```
-
-The whole catalog is re-evaluated on every single increment. Not an index from counter →
-affected achievements, not a dirty set. 25 comparisons on a user action is free, and the
-moment conditions can span multiple variables — which v1's `conditions[]` allows — any
-"only check what changed" optimisation is silently wrong.
-
-`Object.entries` order is insertion order, so `newlyUnlocked` comes back in **catalog
-order**. That is what the user sees as a toast queue, and it is asserted in
-`engine.test.ts`. Preserve it: return matches in `catalog` order, unsorted.
-
-## `>=`, not `==`
-
-The single most important character in the file.
-
-Data import can move a counter by 47 in one step. With `==`, only the badge whose goal
-exactly equals the new value fires, and the other three in the series are lost **forever**
-— nothing ever re-checks them, because the counter only goes up.
-
-With `>=`, one jump unlocks the whole series at once, in catalog order:
-
-```
-setCounter("pathCreated", 50)
-  → pathfinder (3), trailblazer (10), architect (25), mapmaker (50)
-```
-
-Both behaviours are pinned in `engine.test.ts` (`describe(">= not ==")`).
-
-Corollary: `applyIncrement({ by: 25 })` must produce exactly what 25 calls of
-`applyIncrement({ by: 1 })` produce. Also tested.
-
-## Unlock persistence
+## The achievements store
 
 ```ts
-unlockedAchievements: string[]   // ids, in unlock order
+import { configureXPKit, createAchievementsStore, parseConfig } from '@xpkit-dev/core'
+
+configureXPKit({ keyPrefix: 'progres' })
+const config = parseConfig(raw)
+const store = createAchievementsStore({ catalog: config.gamification.achievements })
+
+const unlocked = store.getState().increment('pathCreated')
 ```
 
-An array of ids. Not objects, not indices — **ids**.
+It is a zustand vanilla store with `counters` and `unlocked`, plus three actions.
 
-- Not objects, because the catalog comes from config on every launch. Persisting a badge's
-  name means a copy fix in the editor never reaches an existing user.
-- Not indices, because inserting a badge mid-catalog would silently reassign everyone's
-  collection.
+- `increment(variableId, by?)` returns the ids unlocked by that call.
+- `setCounter(variableId, value)` does the same for an absolute value.
+- `reset()` clears both fields. Meant for debugging and tests.
 
-Which makes `id` **frozen forever (Rule 2)**. Rename one and every user who had that badge
-silently loses it. If you want to know what fixing that costs after the fact, read
-[`examples/usage/energy-xp-onboarding-migration.ts`](reference/examples/usage/energy-xp-onboarding-migration.ts)
-— 60 lines, two fallback paths, and a permanent migration flag, all to rename one
-persistence key.
+Only `counters` and `unlocked` are persisted, under `<keyPrefix>:achievements`. The catalog
+comes from the config on each launch, so adding a badge needs no migration. Options:
+`name` (key suffix) and `persist: false` for tests. The store returns ids instead of
+showing toasts, so each platform decides how to celebrate.
 
-For the same reason: persist `counters` and `unlocked`, and **nothing else**. Never the
-catalog. A config change that adds a badge must not be a migration.
-
-## `conditions: []` must never unlock
-
-An empty AND is vacuously true in logic. Here that would mean a half-configured badge in
-the editor fires for every user on first launch, which is unrecoverable — it is already in
-their persisted `unlocked` array. Return `false`. Tested.
-
-## Notifications stay out of the engine
-
-The slice fires `notify.celebrate(...)` — confetti and haptics — and does it **after** the
-`set()` completes, not inside it. Two reasons, and one of them cost real debugging time:
-
-- Immer's draft is not a place to run side effects (`trackEvent` inside a producer is a
-  known footgun across these apps).
-- The review prompt is chained to the triggering toast's `onHide`. Firing it immediately
-  races an in-flight formSheet dismiss, and iOS silently fails to mount the native
-  `<Modal>`. Read the comment in the slice; it is a good example of the kind of ordering
-  constraint that never survives a rewrite unless someone wrote it down.
-
-Your engine returns `newlyUnlocked` and fires nothing. The caller decides whether that
-means a toast, a `console.log`, or a row in the playground's event log — a browser has
-neither haptics nor `notify.celebrate`.
-
-## Progress, for the UI
-
-```ts
-Math.min((current / goal) * 100, 100)
-```
-
-Generalise to N conditions however you can defend — the least-complete condition is the
-obvious choice. Locked achievements still get a real number; the renderer decides whether
-to show it. `withStatus()` in the engine is where this belongs, so no renderer contains
-unlock logic.
-
-## What the shipped UI does with all this
-
-[`achievement-badge.tsx`](reference/examples/achievements/achievement-badge.tsx): a locked badge
-shows 🔒 / `???` / "Keep progressing to unlock!" — never the real name or description.
-[`achievement-list.tsx`](reference/examples/achievements/achievement-list.tsx): two-column
-`FlatList`. [`achievements-screen.tsx`](reference/examples/achievements/achievements-screen.tsx):
-an "N/25 achievements unlocked" header.
+Use the engine when you want XP, levels, milestones and streaks. Use the store when you
+only need badges.
