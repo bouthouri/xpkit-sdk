@@ -1,3 +1,7 @@
+This folder is reference code extracted from the apps (Energy XP, Karv, Progres) before the
+SDK existed. It is not maintained and is not part of any package. The behaviour that
+matters now lives in `packages/core`.
+
 # examples/ — real shipped code. READ ONLY.
 
 Everything in this folder is **verbatim source from apps that are live on the App
@@ -9,27 +13,11 @@ Three rules:
 
 1. **Do not edit these files.** They are a snapshot. If you change one, the next
    person reads a lie.
-2. **Do not import them.** They will not compile here and will not run in a browser —
-   see below. `examples/` is excluded from `tsconfig.json` and from vitest on purpose.
+2. **Do not import them.** They will not compile here. `examples/` is excluded from `tsconfig.json` and from vitest on purpose.
 3. **Read them, then rebuild.** Your job is a config-driven, platform-free version of
-   this behaviour in `onboarding/` and `achievements/`. Not a port. Not a copy.
+   this behaviour in `packages/core`. Not a port. Not a copy.
 
-## Why it doesn't run on web
-
-Every file under `examples/onboarding/` is React Native. In load-failure order:
-
-| # | Blocker | Where |
-|---|---|---|
-| 1 | `Platform.select` with no `web`/`default` key returns `undefined`, then `Object.entries(undefined)` **throws at import time** | `theme/typography.ts` → crayons `components/text.tsx:90` |
-| 2 | `react-native-pager-view` v7 — android/ios only, no web build | `OnboardingCarousel.tsx` |
-| 3 | Reanimated `useEvent` / `useHandler` — native event bridge | `OnboardingCarousel.tsx` |
-| 4 | `expo-notifications`, hard top-level import | `slides/NotificationPermissionSlide.tsx` |
-| 5 | `react-native-mmkv`, `expo-application`, `Linking.openSettings()` | `onboarding-store.ts`, permission slides |
-
-Blocker 1 breaks **all of crayons** on web, not just onboarding. The full write-up is
-in [`../docs/issues/onboarding-web-limitation.md`](../docs/issues/onboarding-web-limitation.md).
-
-Nothing you build depends on any of this being fixed.
+The onboarding files are React Native and will not load in a browser.
 
 ## What's in here
 

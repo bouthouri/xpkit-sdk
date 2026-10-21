@@ -1,15 +1,9 @@
 /**
- * THE SPEC TEST.
+ * Progres replay spec.
  *
- * This file fails on a fresh clone. That is intentional — its failure message is your
- * first instruction:
- *
- *     NotImplementedError: applyIncrement() is not implemented — see docs/05-first-task.md
- *
- * It is not a unit test of your design. It is a replay of what Progres does today,
- * asserted against the shipped catalog in `fixtures/progres.json`. If your engine
- * passes this, a Progres user could be migrated onto it without losing a badge or
- * seeing one fire twice. Do not change the assertions to fit your implementation.
+ * Replays what Progres does today against the shipped catalog in `fixtures/progres.json`.
+ * If this passes, a Progres user could be moved onto the engine without losing a badge
+ * or seeing one fire twice. Do not change the assertions to fit an implementation.
  */
 
 import { beforeAll, describe, expect, it } from "bun:test";
