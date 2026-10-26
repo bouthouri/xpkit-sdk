@@ -111,6 +111,25 @@ describe('async storage hydration', () => {
   })
 })
 
+describe('engine.onChange', () => {
+  it('fires once when async hydration finishes and not after unsubscribe', async () => {
+    const { storage, release } = asyncStorage()
+    const engine = createEngine(config, { storage })
+    let calls = 0
+    const stop = engine.onChange(() => {
+      calls += 1
+    })
+    release()
+    await engine.ready
+    expect(calls).toBe(1)
+    engine.emit({ type: 'win' })
+    expect(calls).toBe(2)
+    stop()
+    engine.emit({ type: 'win' })
+    expect(calls).toBe(2)
+  })
+})
+
 describe('external engine prop', () => {
   it('uses the given engine instead of creating one', async () => {
     const storage = asyncStorage().storage
