@@ -144,4 +144,23 @@ describe('external engine prop', () => {
     act(() => engine.emit({ type: 'win' }))
     expect(result.current.map(a => a.id)).toEqual(['first'])
   })
+
+  it('reflects external emits that raise no signal (counter and xp only)', async () => {
+    const engine = createEngine(config, { storage: { get: () => null, set: () => {}, remove: () => {} } })
+    const { result } = renderHook(() => ({ level: useLevel(), xpkit: useXPKit() }), {
+      wrapper: ({ children }: { children?: React.ReactNode }) => (
+        <XPKitProvider config={config} engine={engine} storage={asyncStorage().storage}>{children}</XPKitProvider>
+      ),
+    })
+    await act(async () => {})
+    act(() => {
+      engine.emit({ type: 'loss' })
+      engine.emit({ type: 'loss' })
+    })
+    expect(result.current.level.level?.id).toBe('l2')
+    // Third emit: 'loss' unlocks nothing and l2 is the top level, so the engine raises no signal.
+    act(() => engine.emit({ type: 'loss' }))
+    expect(result.current.level.xp).toBe(3)
+    expect(result.current.xpkit.state.variables.loss).toBe(3)
+  })
 })

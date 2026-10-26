@@ -60,6 +60,12 @@ export function XPKitProvider({ config, engine: externalEngine, assetMap = EMPTY
     }
   }, [engine])
 
+  // An external engine can change state outside React with no signal (PRS-490).
+  React.useLayoutEffect(
+    () => engine.onChange(() => setState(prev => keepIfEqual(prev, engine.getState()))),
+    [engine],
+  )
+
   // Install signal handlers before child passive effects can emit/flush events.
   React.useLayoutEffect(() => {
     return engine.subscribe((signal: EngineSignal) => {

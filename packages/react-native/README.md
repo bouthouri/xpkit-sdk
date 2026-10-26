@@ -35,6 +35,6 @@ function Home() {
 ```
 
 - `storage` can be sync (MMKV, memory) or async (AsyncStorage); the provider refreshes once the engine is `ready`.
-- Pass `engine` to `XPKitProvider` to share an engine you created yourself (`config` is still used for lookups).
+- Pass `engine` to `XPKitProvider` to share an engine you created yourself (`config` is still used for lookups). Hooks re-render when that engine changes outside React, e.g. `engine.emit` from a store action.
 - Hooks: `useEmit`, `useUnlockedAchievements`, `useLevel`, `useXPKitSignal`, `useOnAchievementUnlocked`, `useOnLevelUp`, `useOnboarding`, `useWhatsNew`.
 - Badges expose `testID="xpkit-badge-<id>"`; onboarding pages `xpkit-onboarding-<screenId>` and `xpkit-onboarding-next`.
