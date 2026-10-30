@@ -111,6 +111,25 @@ describe('async storage hydration', () => {
   })
 })
 
+describe('engine.onChange', () => {
+  it('fires once when async hydration finishes and not after unsubscribe', async () => {
+    const { storage, release } = asyncStorage()
+    const engine = createEngine(config, { storage })
+    let calls = 0
+    const stop = engine.onChange(() => {
+      calls += 1
+    })
+    release()
+    await engine.ready
+    expect(calls).toBe(1)
+    engine.emit({ type: 'win' })
+    expect(calls).toBe(2)
+    stop()
+    engine.emit({ type: 'win' })
+    expect(calls).toBe(2)
+  })
+})
+
 describe('external engine prop', () => {
   it('uses the given engine instead of creating one', async () => {
     const storage = asyncStorage().storage
@@ -143,5 +162,24 @@ describe('external engine prop', () => {
     // Emitted directly on the engine, outside the provider's emit: the signal refreshes state.
     act(() => engine.emit({ type: 'win' }))
     expect(result.current.map(a => a.id)).toEqual(['first'])
+  })
+
+  it('reflects external emits that raise no signal (counter and xp only)', async () => {
+    const engine = createEngine(config, { storage: { get: () => null, set: () => {}, remove: () => {} } })
+    const { result } = renderHook(() => ({ level: useLevel(), xpkit: useXPKit() }), {
+      wrapper: ({ children }: { children?: React.ReactNode }) => (
+        <XPKitProvider config={config} engine={engine} storage={asyncStorage().storage}>{children}</XPKitProvider>
+      ),
+    })
+    await act(async () => {})
+    act(() => {
+      engine.emit({ type: 'loss' })
+      engine.emit({ type: 'loss' })
+    })
+    expect(result.current.level.level?.id).toBe('l2')
+    // Third emit: 'loss' unlocks nothing and l2 is the top level, so the engine raises no signal.
+    act(() => engine.emit({ type: 'loss' }))
+    expect(result.current.level.xp).toBe(3)
+    expect(result.current.xpkit.state.variables.loss).toBe(3)
   })
 })

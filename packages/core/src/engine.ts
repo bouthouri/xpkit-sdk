@@ -29,6 +29,8 @@ export interface Engine {
   emit(event: EngineEvent): void
   getState(): EngineState
   subscribe(listener: (signal: EngineSignal) => void): () => void
+  /** Called after every state change (each applied event, and async hydration), signal or not. */
+  onChange(listener: () => void): () => void
   /** Resolves once stored state is loaded and queued events are applied. Already resolved for sync storage. */
   ready: Promise<void>
 }
@@ -78,6 +80,12 @@ export function createEngine(
 
   function notify(signal: EngineSignal) {
     for (const listener of listeners) listener(signal)
+  }
+
+  const changeListeners = new Set<() => void>()
+
+  function notifyChange() {
+    for (const listener of changeListeners) listener()
   }
 
   // Fire and forget: a failing write (sync throw or rejected promise) must never break
@@ -185,6 +193,7 @@ export function createEngine(
       for (const event of pending.splice(0)) apply(event)
       save()
     }
+    notifyChange()
   }
 
   let ready: Promise<void>
@@ -214,6 +223,7 @@ export function createEngine(
       }
       apply(event)
       save()
+      notifyChange()
     },
 
     getState(): EngineState {
@@ -223,6 +233,11 @@ export function createEngine(
     subscribe(listener) {
       listeners.add(listener)
       return () => listeners.delete(listener)
+    },
+
+    onChange(listener) {
+      changeListeners.add(listener)
+      return () => changeListeners.delete(listener)
     },
   }
 }

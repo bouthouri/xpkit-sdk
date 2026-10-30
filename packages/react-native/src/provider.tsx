@@ -60,10 +60,15 @@ export function XPKitProvider({ config, engine: externalEngine, assetMap = EMPTY
     }
   }, [engine])
 
+  // Single refresh path: every engine change, including external emits with no signal (PRS-490).
+  React.useLayoutEffect(
+    () => engine.onChange(() => setState(prev => keepIfEqual(prev, engine.getState()))),
+    [engine],
+  )
+
   // Install signal handlers before child passive effects can emit/flush events.
   React.useLayoutEffect(() => {
     return engine.subscribe((signal: EngineSignal) => {
-      setState(engine.getState())
       handlers?.onSignal?.(signal, handlerContext)
       if (signal.type === 'milestoneReached') {
         handlers?.onEffect?.(signal.effect, handlerContext)
@@ -73,7 +78,6 @@ export function XPKitProvider({ config, engine: externalEngine, assetMap = EMPTY
 
   const emit = React.useCallback((event: EngineEvent) => {
     engine.emit(event)
-    setState(engine.getState())
     handlers?.track?.(event.type, event)
   }, [engine, handlers])
 

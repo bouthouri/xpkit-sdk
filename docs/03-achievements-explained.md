@@ -70,6 +70,8 @@ engine.emit({ type: 'pathCreated' })
 | `levelUp` | the level changes | `levelId` |
 | `streakMilestone` | the variable reaches a value in `streak.milestones`, once each | `id`, `value` |
 
+`engine.onChange(listener)` fires after every state change (each event, and async hydration), signal or not. It also returns an unsubscribe function.
+
 A milestone with `variableKey` only checks that variable. A milestone without it is checked
 against whichever variable was just emitted.
 

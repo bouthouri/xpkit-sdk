@@ -21,6 +21,8 @@ engine.subscribe(signal => {
   if (signal.type === 'achievementUnlocked') console.log('unlocked', signal.id)
 })
 
+engine.onChange(() => render(engine.getState()))      // any state change, signal or not
+
 await engine.ready                                  // stored state loaded (async storage)
 engine.emit({ type: 'tasks_completed' })            // type = a variable id from your config
 console.log(engine.getState().xp)
