@@ -38,7 +38,7 @@ import { createEngine, parseEngineState, ENGINE_STATE_KEY } from '@xpkit-dev/cor
 
 // Migrate once: used only when storage has no valid state, saved once loading finishes
 // (right away with sync storage), no signals. Throws TypeError when the seed is invalid.
-// A failed storage read keeps the seed in memory only, so real progress is never overwritten.
+// A failed storage read keeps the seed in memory only: it is not saved until the next change.
 const engine = createEngine(config, { storage, initialState: legacyToEngineState(old) })
 
 // Import or reset: force-replaces state, persists it, calls onChange, no signals.
