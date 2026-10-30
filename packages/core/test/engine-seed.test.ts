@@ -152,6 +152,34 @@ describe('createEngine initialState (sync storage)', () => {
     }
   })
 
+  it('lets a valid partial stored state win, with defaults filled in', () => {
+    const storage = createMemoryStorage()
+    storage.set(ENGINE_STATE_KEY, JSON.stringify({ xp: 3 }))
+    const engine = createEngine(config, { storage, initialState: seedState() })
+    expect(engine.getState()).toEqual({
+      variables: {},
+      unlockedAchievements: [],
+      milestoneLevels: {},
+      reachedStreakMilestones: {},
+      xp: 3,
+      currentLevelId: null,
+    })
+  })
+
+  it('starts empty over corrupt stored state when there is no initialState', () => {
+    const storage = createMemoryStorage()
+    storage.set(ENGINE_STATE_KEY, JSON.stringify({ xp: 'many' }))
+    const engine = createEngine(config, { storage })
+    expect(engine.getState()).toEqual({
+      variables: {},
+      unlockedAchievements: [],
+      milestoneLevels: {},
+      reachedStreakMilestones: {},
+      xp: 0,
+      currentLevelId: null,
+    })
+  })
+
   it('throws a TypeError for an invalid initialState', () => {
     const bad = { ...seedState(), xp: 'x' } as unknown as EngineState
     expect(() => createEngine(config, { storage: createMemoryStorage(), initialState: bad })).toThrow(TypeError)
@@ -186,6 +214,7 @@ describe('createEngine initialState (async storage)', () => {
     const engine = createEngine(config, { storage: asyncStorage(backing), initialState: seedState() })
     await engine.ready
     expect(engine.getState()).toEqual(otherState())
+    expect(JSON.parse(backing.get(ENGINE_STATE_KEY) as string)).toEqual(otherState())
   })
 
   it('uses initialState over corrupt stored state', async () => {
@@ -195,6 +224,7 @@ describe('createEngine initialState (async storage)', () => {
       const engine = createEngine(config, { storage: asyncStorage(backing), initialState: seedState() })
       await engine.ready
       expect(engine.getState()).toEqual(seedState())
+      expect(JSON.parse(backing.get(ENGINE_STATE_KEY) as string)).toEqual(seedState())
     }
   })
 })
