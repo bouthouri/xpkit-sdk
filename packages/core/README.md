@@ -31,6 +31,21 @@ console.log(engine.getState().xp)
 A `StorageAdapter` is just `get` / `set` / `remove` (sync or async), so MMKV, AsyncStorage,
 localStorage or your own backend all fit.
 
+### Seeding and replacing state
+
+```ts
+import { createEngine, parseEngineState, ENGINE_STATE_KEY } from '@xpkit-dev/core'
+
+// Migrate once: used only when storage has no valid state, saved right away, no signals.
+const engine = createEngine(config, { storage, initialState: legacyToEngineState(old) })
+
+// Import or reset: force-replaces state, persists it, calls onChange, no signals.
+engine.replaceState(importedState)        // throws TypeError when invalid
+
+parseEngineState(json)                    // EngineState copy, or null when invalid
+storage.get(ENGINE_STATE_KEY)             // the key, for apps that must inspect storage
+```
+
 See the [root README](../../README.md) for the full package list and docs.
 
 ## License
