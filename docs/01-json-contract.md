@@ -157,13 +157,14 @@ the version gate message of `parseConfig`.
 - Naming is not uniform. Conditions use `variableId`. Milestones and streaks use
   `variableKey`.
 - No effect type is defined by the schema. Effects are open on purpose.
+- `emit` adds 1. No weighted increment, such as Karv's "energy spent" (PRS-464).
 
 ## Kept in the app on purpose
 
 Checked against Progres and Karv (PRS-469). Add a field only when a second app needs it.
 
-- **Which app action counts.** `emit({ type })` counts the variable whose `id` is `type`,
-  so the event already is the variable id. Which app code emits it (Progres' `addProgres()`)
+- **Which app action counts.** The event type already is the variable id (see
+  [03](03-achievements-explained.md)). Which app code emits it (Progres' `addProgres()`)
   stays in the variable's `description`.
 - **What happens on unlock.** Toasts, analytics and review prompts are app UX. Every app
   gets them from the `achievementUnlocked` signal (`useOnAchievementUnlocked` in
