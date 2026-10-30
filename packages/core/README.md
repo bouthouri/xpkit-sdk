@@ -36,7 +36,9 @@ localStorage or your own backend all fit.
 ```ts
 import { createEngine, parseEngineState, ENGINE_STATE_KEY } from '@xpkit-dev/core'
 
-// Migrate once: used only when storage has no valid state, saved right away, no signals.
+// Migrate once: used only when storage has no valid state, saved once loading finishes
+// (right away with sync storage), no signals. Throws TypeError when the seed is invalid.
+// A failed storage read keeps the seed in memory only, so real progress is never overwritten.
 const engine = createEngine(config, { storage, initialState: legacyToEngineState(old) })
 
 // Import or reset: force-replaces state, persists it, calls onChange, no signals.

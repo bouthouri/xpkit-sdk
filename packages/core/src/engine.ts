@@ -45,8 +45,12 @@ export interface Engine {
 /** Storage key the engine persists its state under. Apps that must inspect storage can use it. */
 export const ENGINE_STATE_KEY = 'xpkit_state'
 
-const isRecord = (v: unknown): v is Record<string, unknown> =>
-  typeof v === 'object' && v !== null && !Array.isArray(v)
+// Plain objects only: JSON objects, object literals and Object.create(null). Not arrays, Map, Date.
+const isRecord = (v: unknown): v is Record<string, unknown> => {
+  if (typeof v !== 'object' || v === null) return false
+  const proto = Object.getPrototypeOf(v)
+  return proto === Object.prototype || proto === null
+}
 
 const isFiniteNumber = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
 
@@ -70,14 +74,14 @@ export function parseEngineState(value: unknown): EngineState | null {
   }
   if (!isRecord(p)) return null
   const { variables, unlockedAchievements, milestoneLevels, reachedStreakMilestones, xp, currentLevelId } = p
-  if (variables !== undefined && !allValues(variables, v => isFiniteNumber(v) || typeof v === 'boolean')) return null
+  if (variables != null && !allValues(variables, v => isFiniteNumber(v) || typeof v === 'boolean')) return null
   if (
-    unlockedAchievements !== undefined &&
+    unlockedAchievements != null &&
     !(Array.isArray(unlockedAchievements) && unlockedAchievements.every(v => typeof v === 'string'))
   ) return null
-  if (milestoneLevels !== undefined && !allValues(milestoneLevels, isFiniteNumber)) return null
-  if (reachedStreakMilestones !== undefined && !allValues(reachedStreakMilestones, v => typeof v === 'boolean')) return null
-  if (xp !== undefined && !isFiniteNumber(xp)) return null
+  if (milestoneLevels != null && !allValues(milestoneLevels, isFiniteNumber)) return null
+  if (reachedStreakMilestones != null && !allValues(reachedStreakMilestones, v => typeof v === 'boolean')) return null
+  if (xp != null && !isFiniteNumber(xp)) return null
   if (currentLevelId !== undefined && currentLevelId !== null && typeof currentLevelId !== 'string') return null
   return {
     variables:               { ...(variables as EngineState['variables'] | undefined) },
@@ -238,12 +242,13 @@ export function createEngine(
   let replaced = false
 
   // Bad, invalid or missing stored state means the seed, else a fresh start, never a crash.
-  function finishHydration(raw: string | null) {
+  // A failed read is not "no state": the seed is used in memory but not saved over it.
+  function finishHydration(raw: string | null, readFailed = false) {
     let seeded = false
     if (!replaced) {
       const stored = raw === null ? null : parseEngineState(raw)
       state = stored ?? seed ?? emptyState()
-      seeded = !stored && seed !== null
+      seeded = !stored && seed !== null && !readFailed
     }
     hydrated = true
     if (pending.length > 0) {
@@ -257,18 +262,20 @@ export function createEngine(
 
   let ready: Promise<void>
   let initial: string | null | Promise<string | null>
+  let readFailed = false
   try {
     initial = storage.get(STORAGE_KEY)
   } catch {
     initial = null
+    readFailed = true
   }
   if (isPromiseLike(initial)) {
     ready = Promise.resolve(initial).then(
       raw => finishHydration(raw),
-      () => finishHydration(null),
+      () => finishHydration(null, true),
     )
   } else {
-    finishHydration(initial)
+    finishHydration(initial, readFailed)
     ready = Promise.resolve()
   }
 

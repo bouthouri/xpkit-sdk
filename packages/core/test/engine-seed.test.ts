@@ -269,3 +269,64 @@ describe('engine.replaceState', () => {
     expect(JSON.parse(backing.get(ENGINE_STATE_KEY) as string).xp).toBe(3)
   })
 })
+
+describe('initialState when the storage read fails (Raqib M1)', () => {
+  function failingStorage(mode: 'throw' | 'reject') {
+    const writes: string[] = []
+    const adapter: StorageAdapter = {
+      get: key => {
+        if (mode === 'throw') throw new Error(`read ${key} failed`)
+        return Promise.reject(new Error(`read ${key} failed`))
+      },
+      set: (_key, value) => {
+        writes.push(value)
+      },
+      remove: () => {},
+    }
+    return { adapter, writes }
+  }
+
+  it('uses the seed in memory but never saves it over storage (sync throw)', () => {
+    const { adapter, writes } = failingStorage('throw')
+    const engine = createEngine(config, { storage: adapter, initialState: seedState() })
+    expect(engine.getState()).toEqual(seedState())
+    expect(writes).toEqual([])
+  })
+
+  it('uses the seed in memory but never saves it over storage (async reject)', async () => {
+    const { adapter, writes } = failingStorage('reject')
+    const engine = createEngine(config, { storage: adapter, initialState: seedState() })
+    await engine.ready
+    expect(engine.getState()).toEqual(seedState())
+    expect(writes).toEqual([])
+  })
+})
+
+describe('parseEngineState edge cases (Raqib m1, nit)', () => {
+  it('treats null fields like missing ones', () => {
+    const out = parseEngineState({
+      variables: null,
+      unlockedAchievements: null,
+      milestoneLevels: null,
+      reachedStreakMilestones: null,
+      xp: null,
+      currentLevelId: null,
+    })
+    expect(out).toEqual({
+      variables: {},
+      unlockedAchievements: [],
+      milestoneLevels: {},
+      reachedStreakMilestones: {},
+      xp: 0,
+      currentLevelId: null,
+    })
+  })
+
+  it('rejects non-plain objects', () => {
+    expect(parseEngineState(new Map())).toBeNull()
+    expect(parseEngineState(new Date())).toBeNull()
+    expect(parseEngineState({ ...seedState(), variables: new Map() })).toBeNull()
+    const engine = createEngine(config, { storage: createMemoryStorage() })
+    expect(() => engine.replaceState(new Map() as unknown as EngineState)).toThrow(TypeError)
+  })
+})
