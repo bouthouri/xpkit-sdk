@@ -158,6 +158,18 @@ the version gate message of `parseConfig`.
   `variableKey`.
 - No effect type is defined by the schema. Effects are open on purpose.
 
+## Kept in the app on purpose
+
+Checked against Progres and Karv (PRS-469). Add a field only when a second app needs it.
+
+- **Which app action counts.** `emit({ type })` counts the variable whose `id` is `type`,
+  so the event already is the variable id. Which app code emits it (Progres' `addProgres()`)
+  stays in the variable's `description`.
+- **What happens on unlock.** Toasts, analytics and review prompts are app UX. Every app
+  gets them from the `achievementUnlocked` signal (`useOnAchievementUnlocked` in
+  `@xpkit-dev/react-native`). App rules such as "ask for a review on the first unlock that
+  is not `starter`" stay in app code.
+
 ## Using the platform packages
 
 The React Native package reads this same config. See
