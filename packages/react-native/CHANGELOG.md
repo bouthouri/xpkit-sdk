@@ -1,5 +1,14 @@
 # @xpkit-dev/react-native
 
+## 0.1.2
+
+### Patch Changes
+
+- 3bbdb19: Engine `onChange(listener)` fires after every state change. `XPKitProvider` uses it, so hooks re-render when an external `engine` is emitted on outside React (PRS-490).
+- Updated dependencies [3bbdb19]
+- Updated dependencies [26b155b]
+  - @xpkit-dev/core@0.2.0
+
 ## 0.1.1
 
 ### Patch Changes
