@@ -1,0 +1,85 @@
+# Scenario: ../../specs/example.feature
+appId: dev.xpkit.example
+tags:
+  - scenario-EX-01
+---
+- runFlow: ../../subflows/start.yaml
+# --- @scenario-EX-01 Onboarding, first badge, first level up, all kept after a relaunch ---
+# fixtures:
+
+# Onboarding: 3 screens, Next on each (the last one says "Get started").
+- tapOn:
+    id: 'xpkit-onboarding-next'
+- extendedWaitUntil:
+    visible:
+      id: 'xpkit-onboarding-badges'
+    timeout: 5000
+- tapOn:
+    id: 'xpkit-onboarding-next'
+- extendedWaitUntil:
+    visible:
+      id: 'xpkit-onboarding-levels'
+    timeout: 5000
+- tapOn:
+    id: 'xpkit-onboarding-next'
+- extendedWaitUntil:
+    notVisible:
+      id: 'xpkit-onboarding-next'
+    timeout: 5000
+
+# Home, before any action.
+- assertVisible:
+    id: 'level-name'
+    text: 'Level: Beginner'
+- assertVisible:
+    id: 'xpkit-badge-starter'
+    text: 'Starter, locked'
+
+# 1 tap unlocks Starter.
+- tapOn:
+    id: 'complete-button'
+- extendedWaitUntil:
+    visible:
+      id: 'xpkit-badge-starter'
+      text: 'Starter, unlocked'
+    timeout: 5000
+- assertVisible:
+    id: 'xp-count'
+    text: '1 XP'
+
+# 2 more taps (3 XP) reach Explorer.
+- tapOn:
+    id: 'complete-button'
+- extendedWaitUntil:
+    visible:
+      id: 'xp-count'
+      text: '2 XP'
+    timeout: 5000
+- tapOn:
+    id: 'complete-button'
+- extendedWaitUntil:
+    visible:
+      id: 'level-name'
+      text: 'Level: Explorer'
+    timeout: 5000
+- assertVisible:
+    id: 'xp-count'
+    text: '3 XP'
+
+# Relaunch without clearing state: level, XP and badge are kept, onboarding stays done.
+- stopApp
+- launchApp:
+    clearState: false
+- extendedWaitUntil:
+    visible:
+      id: 'level-name'
+      text: 'Level: Explorer'
+    timeout: 20000
+- assertVisible:
+    id: 'xp-count'
+    text: '3 XP'
+- assertVisible:
+    id: 'xpkit-badge-starter'
+    text: 'Starter, unlocked'
+- assertNotVisible:
+    id: 'xpkit-onboarding-welcome'

@@ -1,0 +1,3 @@
+# Maestro workspace: flows only (subflows are pulled in by runFlow)
+flows:
+  - flows/**
