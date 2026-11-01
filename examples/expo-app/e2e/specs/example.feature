@@ -2,7 +2,7 @@
 
 Feature: The example app shows XP Kit end to end
 
-  @scenario-EX-01 @ios @android:todo
+  @scenario-EX-01 @ios @android
   Scenario: Onboarding, first badge, first level up, all kept after a relaunch
     Given a fresh install of the example app
     When I go through the 3 onboarding screens
