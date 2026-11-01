@@ -1,0 +1,10 @@
+# Fresh install state, launch, wait for the first onboarding screen.
+appId: dev.xpkit.example
+---
+- launchApp:
+    clearState: true
+    stopApp: true
+- extendedWaitUntil:
+    visible:
+      id: 'xpkit-onboarding-welcome'
+    timeout: 20000
