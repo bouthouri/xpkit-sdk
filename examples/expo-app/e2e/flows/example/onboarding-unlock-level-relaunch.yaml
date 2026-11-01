@@ -22,15 +22,13 @@ tags:
     timeout: 5000
 - tapOn:
     id: 'xpkit-onboarding-next'
-- extendedWaitUntil:
-    notVisible:
-      id: 'xpkit-onboarding-next'
-    timeout: 5000
 
-# Home, before any action.
-- assertVisible:
-    id: 'level-name'
-    text: 'Level: Beginner'
+# Home, before any action (the onboarding modal hides it until it closes).
+- extendedWaitUntil:
+    visible:
+      id: 'level-name'
+      text: 'Level: Beginner'
+    timeout: 5000
 - assertVisible:
     id: 'xpkit-badge-starter'
     text: 'Starter, locked'
